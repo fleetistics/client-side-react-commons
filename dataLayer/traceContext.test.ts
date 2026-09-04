@@ -26,7 +26,7 @@ describe('recordTrace', () => {
   });
 
   it('invokes the registered recorder', () => {
-    const recorder = vi.fn();
+    const recorder = jest.fn();
     setTraceRecorder(recorder);
     recordTrace('getUsers', 'abc123');
     expect(recorder).toHaveBeenCalledWith('getUsers', 'abc123');

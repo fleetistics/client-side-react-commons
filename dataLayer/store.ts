@@ -4,12 +4,18 @@ import { apiSlice } from './apiSlice';
 
 // Factory rather than a bare singleton: tests create a fresh store per render so the
 // RTK Query cache never leaks between test cases. The app still uses the one below.
-export const makeStore = () =>
+//
+// autoBatch defaults on (RTK's default) and schedules its notify via requestAnimationFrame.
+// Tests can pass autoBatch: false — a store that outlives its test would otherwise leave a
+// pending rAF-driven timer that fires after Jest tears the test environment down.
+export const makeStore = (options?: { autoBatch?: boolean }) =>
   configureStore({
     reducer: {
       [apiSlice.reducerPath]: apiSlice.reducer,
     },
     middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(apiSlice.middleware),
+    enhancers: (getDefaultEnhancers) =>
+      getDefaultEnhancers({ autoBatch: options?.autoBatch ?? true }),
   });
 
 export const store = makeStore();
