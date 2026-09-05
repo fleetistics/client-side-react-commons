@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
-import { getErrorMessage, getErrorStatus } from '@/app.Commons/dataLayer/apiError';
-import { setOnAuthLost } from '@/app.Commons/dataLayer/apiSlice';
+import { getErrorMessage, getErrorStatus } from '@/client-side.Commons/dataLayer/apiError';
+import { setOnAuthLost } from '@/client-side.Commons/dataLayer/apiSlice';
 import { InitError } from '@/app.Impl/initComponents/init-error';
 import { InitWaiter } from '@/app.Impl/initComponents/init-waiter';
 import { NoAuthUI } from '@/app.Impl/userSession/noauth-ui';

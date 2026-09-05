@@ -1,6 +1,6 @@
 import type { BackendModule } from 'i18next';
-import { getErrorMessage } from '@/app.Commons/dataLayer/apiError';
-import { store } from '@/app.Commons/dataLayer/store';
+import { getErrorMessage } from '@/client-side.Commons/dataLayer/apiError';
+import { store } from '@/client-side.Commons/dataLayer/store';
 import { translationApi } from '@/app.DataLayer/translations/translationApi';
 import type { TranslationTable } from './translationTypes';
 

@@ -1,7 +1,7 @@
 import i18next from 'i18next';
 import { initReactI18next } from 'react-i18next';
-import { getErrorMessage } from '@/app.Commons/dataLayer/apiError';
-import { store } from '@/app.Commons/dataLayer/store';
+import { getErrorMessage } from '@/client-side.Commons/dataLayer/apiError';
+import { store } from '@/client-side.Commons/dataLayer/store';
 import { translationApi } from '@/app.DataLayer/translations/translationApi';
 import { getI18nPlatform, setI18nPlatform, setI18nTestMode, type I18nPlatform } from './platform';
 import { createTranslationBackend, ENGLISH, knownEnglishTexts } from './translationBackend';

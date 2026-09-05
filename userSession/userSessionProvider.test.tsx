@@ -1,6 +1,6 @@
 import { Text } from 'react-native';
 import { cleanup, fireEvent, installApiMock, jsonResponse, renderApp, screen } from '@test-utils';
-import { AuthToken } from '@/app.Commons/dataLayer/apiSlice';
+import { AuthToken } from '@/client-side.Commons/dataLayer/apiSlice';
 import { USER_SESSION_CONSTS } from '@/app.Impl/configs/userSession-consts';
 import { UserSessionProvider } from './userSessionProvider';
 

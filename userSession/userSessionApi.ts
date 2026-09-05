@@ -1,6 +1,6 @@
 import type { QueryReturnValue } from '@reduxjs/toolkit/query';
 import type { FetchBaseQueryError, FetchBaseQueryMeta } from '@reduxjs/toolkit/query/react';
-import { apiSlice, AuthToken } from '@/app.Commons/dataLayer/apiSlice';
+import { apiSlice, AuthToken } from '@/client-side.Commons/dataLayer/apiSlice';
 import { ClientSideInfoProvider } from '@/app.Impl/userSession/ClientSideInfoProvider';
 
 import type { LoginData, UserSessionCheckResponse } from './userSessionDto';

@@ -1,5 +1,5 @@
 import { InboundUploadedMediaDto, UploadedMediaDto } from "@/app.DataLayer/other/uploadedMediaDto";
-import { MediaUploadService } from "@/app.Impl/services/media-uploader/mediaUploadService";
+import { MediaUploadService } from "@/app.Commons/services/media-uploader/mediaUploadService";
 
 export function StartMediaUpload(patch: any) {
     if (patch.InsertMedias && Array.isArray(patch.InsertMedias)) {
