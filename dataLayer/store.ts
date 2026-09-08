@@ -1,6 +1,7 @@
 import { configureStore } from '@reduxjs/toolkit';
 import { setupListeners } from '@reduxjs/toolkit/query';
 import { apiSlice } from './apiSlice';
+import locationStateReducer from '@/app.Commons/dataLayer/hooks/locationApi';
 
 // Factory rather than a bare singleton: tests create a fresh store per render so the
 // RTK Query cache never leaks between test cases. The app still uses the one below.
@@ -11,6 +12,7 @@ import { apiSlice } from './apiSlice';
 export const makeStore = (options?: { autoBatch?: boolean }) =>
   configureStore({
     reducer: {
+      locationState: locationStateReducer,
       [apiSlice.reducerPath]: apiSlice.reducer,
     },
     middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(apiSlice.middleware),

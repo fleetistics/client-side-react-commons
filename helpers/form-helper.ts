@@ -1,4 +1,4 @@
-import { InboundUploadedMediaDto, UploadedMediaDto } from "@/app.DataLayer/other/uploadedMediaDto";
+import { InboundUploadedMediaDto, UploadedMediaDto } from "@/app.Commons/dataLayer/model/uploadedMediaDto";
 import { MediaUploadService } from "@/app.Commons/services/media-uploader/mediaUploadService";
 
 export function StartMediaUpload(patch: any) {
