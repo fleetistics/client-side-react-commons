@@ -4,6 +4,11 @@ export type UserSessionCheckResponse = {
   SessionId: number;
 };
 
+export type CheckSessionResult = {
+  clientInfo: ClientSideInfo;
+  serverSessionInfo: UserSessionCheckResponse;
+};
+
 export type LoginData = {
   UserName: string;
   Password: string;
@@ -15,5 +20,6 @@ export type ClientSideInfo = {
   DeviceUID: string;
   CodeVersion: string;
   PlatformName: string;
+  PlatformId: number;
   FCMToken: string;
 };

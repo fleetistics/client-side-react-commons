@@ -1,7 +1,7 @@
 import { configureStore } from '@reduxjs/toolkit';
 import { setupListeners } from '@reduxjs/toolkit/query';
 import { apiSlice } from './apiSlice';
-import locationStateReducer from '@/app.Commons/dataLayer/hooks/locationApi';
+import locationStateReducer from '@/app.Commons/dataLayer/api/locationApi';
 
 // Factory rather than a bare singleton: tests create a fresh store per render so the
 // RTK Query cache never leaks between test cases. The app still uses the one below.
