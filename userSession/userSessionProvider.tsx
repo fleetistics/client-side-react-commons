@@ -9,8 +9,16 @@ import { useCheckSessionQuery } from './userSessionApi';
 import { APP_CONFIG } from '@/app.Impl/configs/app-config';
 import { UserSessionContext } from './userSessionContext';
 
-export function UserSessionProvider(props: { children: React.ReactNode }) {
-  const { data, isLoading, isError, error, refetch } = useCheckSessionQuery();
+export function UserSessionProvider(props: {
+  children: React.ReactNode;
+  // Test/harness escape hatch: when set, skips the real checkSession call entirely and renders
+  // children under a synthetic session with these values instead. Left undefined in every real
+  // app entry point.
+  mockSession?: { UserId: number; SessionId: number; PlatformId: number };
+}) {
+  const { data, isLoading, isError, error, refetch } = useCheckSessionQuery(undefined, {
+    skip: props.mockSession != null,
+  });
   console.log(`UserSessionProvider::useCheckSessionQuery isLoading {isLoading} isError {isError}  - Data/error:`, data, error);
   // When apiSlice exhausts its refresh path, re-check the session so the UI drops
   // back to the login screen instead of sitting on stale, unauthorized data.
@@ -21,6 +29,24 @@ export function UserSessionProvider(props: { children: React.ReactNode }) {
     return () => setOnAuthLost(null);
   }, [refetch]);
 
+  if (props.mockSession) {
+    UserSessionContext.AssignValues(
+      APP_CONFIG.ClientAppId,
+      props.mockSession.PlatformId,
+      props.mockSession.SessionId,
+      props.mockSession.UserId
+    );
+    return (
+      <UserSession_ValidSession
+        UserId={props.mockSession.UserId}
+        SessionId={props.mockSession.SessionId}
+        ClientAppId={UserSessionContext.ClientAppId}
+        PlatformId={props.mockSession.PlatformId}
+      >
+        {props.children}
+      </UserSession_ValidSession>
+    );
+  }
   if (isLoading) {
     return <InitWaiter loadingLabel="Checking user session..." />;
   }

@@ -207,6 +207,6 @@ export const apiSlice = createApi({
   reducerPath: 'api',
   baseQuery: baseQueryWithRetry,
   // Every tag type must be declared here — injectEndpoints() cannot add new ones later.
-  tagTypes: ['User', 'UserLocationPrivacy'],
+  tagTypes: ['User', 'UserLocationPrivacy', 'UserEmergencyAlert'],
   endpoints: () => ({}),
 });
