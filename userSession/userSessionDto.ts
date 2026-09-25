@@ -1,6 +1,7 @@
 export type UserSessionCheckResponse = {
   AccessToken: string;
   UserId: number;
+  UserUUID: string;
   SessionId: number;
 };
 
@@ -21,5 +22,5 @@ export type ClientSideInfo = {
   CodeVersion: string;
   PlatformName: string;
   PlatformId: number;
-  FCMToken: string;
+  FCM_FID?: string;
 };

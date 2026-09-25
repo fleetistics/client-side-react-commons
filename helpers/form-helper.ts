@@ -1,13 +1,6 @@
-import { InboundUploadedMediaDto, UploadedMediaDto } from "@/app.Commons/dataLayer/model/uploadedMediaDto";
-import { MediaUploadService } from "@/app.Commons/services/media-uploader/mediaUploadService";
+import { EditorUploadedMedia, ServerInboundUploadedMedia } from "../dataLayer/model/uploaded-media";
 
-export function StartMediaUpload(patch: any) {
-    if (patch.InsertMedias && Array.isArray(patch.InsertMedias)) {
-        MediaUploadService.Enqueue(patch.InsertMedias);
-    }
-}
-
-export function BuildPatchValue<TPatch extends Record<string, unknown>>(
+export function BuildFormPatchValue<TPatch extends Record<string, unknown>>(
     values: Record<string, unknown>,
     dirtyFields: Record<string, unknown>
 ): TPatch | null {
@@ -18,18 +11,20 @@ export function BuildPatchValue<TPatch extends Record<string, unknown>>(
         patchRecord[field] = values[field];
     }
     if (mediasDirty && Array.isArray(values['Medias']) && values['Medias'].length > 0) {
-        values['Medias'].forEach((media: UploadedMediaDto) => {
+        values['Medias'].forEach((media: EditorUploadedMedia) => {
             if (media.PreviewUrl == '**Deleted**') {
-                if (!patchRecord['RemoveMediaIds']) {
-                    patchRecord['RemoveMediaIds'] = [];
+                if (media.Id) {
+                    if (!patchRecord['RemoveMediaIds']) {
+                        patchRecord['RemoveMediaIds'] = [];
+                    }
+                    (patchRecord['RemoveMediaIds'] as number[]).push(media.Id);
                 }
-                (patchRecord['RemoveMediaIds'] as number[]).push(media.Id);
             }
             else if (media.Id == null) {
                 if (!patchRecord['InsertMedias']) {
                     patchRecord['InsertMedias'] = [];
                 }
-                (patchRecord['InsertMedias'] as InboundUploadedMediaDto[]).push({
+                (patchRecord['InsertMedias'] as ServerInboundUploadedMedia[]).push({
                     Guid: media.Guid,
                     Url: media.Url,
                     MediaType: media.MediaType,

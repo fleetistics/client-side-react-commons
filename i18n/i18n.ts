@@ -2,7 +2,7 @@ import i18next from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import { getErrorMessage } from '@/client-side.Commons/dataLayer/core/apiError';
 import { store } from '@/client-side.Commons/dataLayer/core/store';
-import { translationApi } from '@/app.Commons/dataLayer/api/translationApi';
+import { translationApi } from '@/app.Commons/dataLayer/api/other/translationApi';
 import { getI18nPlatform, setI18nPlatform, setI18nTestMode, type I18nPlatform } from './platform';
 import { createTranslationBackend, ENGLISH, knownEnglishTexts } from './translationBackend';
 import { TRANSLATION_NAMESPACE } from './translationUpdater';

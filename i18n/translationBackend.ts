@@ -1,7 +1,7 @@
 import type { BackendModule } from 'i18next';
 import { getErrorMessage } from '@/client-side.Commons/dataLayer/core/apiError';
 import { store } from '@/client-side.Commons/dataLayer/core/store';
-import { translationApi } from '@/app.Commons/dataLayer/api/translationApi';
+import { translationApi } from '@/app.Commons/dataLayer/api/other/translationApi';
 import type { TranslationTable } from './translationTypes';
 
 export const ENGLISH = 'en';

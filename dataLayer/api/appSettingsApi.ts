@@ -1,4 +1,4 @@
-import ObjectUtils from "@/app.Commons/helpers/ObjectUtils";
+import ObjectUtils from "@/client-side.Commons/helpers/ObjectUtils";
 import { AppUserSettingsService } from "@/app.Commons/services/AppUserSettingsService";
 
 import { LocalSettings } from "@/app.Impl/services/LocalSettings";

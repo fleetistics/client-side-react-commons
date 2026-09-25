@@ -1,11 +1,11 @@
 /**
- * Helpers for deriving app-facing DTO types from the generated OpenAPI schema
- * (`apiSchema.d.ts`, refreshed via `yarn generate:api`). The schema marks every
- * property optional/nullable — System.Text.Json's schema exporter doesn't encode
- * C# non-nullability — so these narrow specific fields back to what an endpoint
- * actually always returns, while still sourcing the field *names* from the
- * schema: a server-side rename or removal fails the client typecheck instead of
- * silently drifting (see e.g. `user/userDto.ts`).
+ * Helpers for deriving app-facing DTO types from the generated OpenAPI models
+ * (`dataLayer/open-api`, refreshed via `yarn generate:api:codegen`). The schema
+ * marks every property optional/nullable — System.Text.Json's schema exporter
+ * doesn't encode C# non-nullability — so these narrow specific fields back to
+ * what an endpoint actually always returns, while still sourcing the field
+ * *names* from the schema: a server-side rename or removal fails the client
+ * typecheck instead of silently drifting (see e.g. `user/userDto.ts`).
  */
 
 /** Drops `null` from a schema property's type. */
