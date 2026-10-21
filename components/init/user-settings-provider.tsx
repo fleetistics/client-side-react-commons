@@ -1,5 +1,5 @@
-import { InitError } from "@/app.Impl/initComponents/init-error";
-import { InitWaiter } from "@/app.Impl/initComponents/init-waiter";
+import { InitError } from "@/client-side.Impl/bootstrap/init-error";
+import { InitWaiter } from "@/client-side.Impl/bootstrap/init-waiter";
 import { useGetRawAppUserSettings } from "@/client-side.Commons/dataLayer/api/appSettingsApi";
 import { getErrorMessage } from "@/client-side.Commons/dataLayer/core/apiError";
 

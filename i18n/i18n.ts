@@ -2,16 +2,13 @@ import i18next from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import { getErrorMessage } from '@/client-side.Commons/dataLayer/core/apiError';
 import { store } from '@/client-side.Commons/dataLayer/core/store';
-import { translationApi } from '@/app.Commons/dataLayer/api/other/translationApi';
-import { getI18nPlatform, setI18nPlatform, setI18nTestMode, type I18nPlatform } from './platform';
+import { translationApi } from '@/client-side.Commons/dataLayer/api/other/translationApi';
+import { getI18nPlatform, setI18nPlatform, setI18nNoTranslation, type I18nPlatform } from './platform';
 import { createTranslationBackend, ENGLISH, knownEnglishTexts } from './translationBackend';
 import { TRANSLATION_NAMESPACE } from './translationUpdater';
 import { createUnknownStringReporter, type UnknownStringReporter } from './unknownStringReporter';
 
 const STORAGE_KEY = 'language';
-
-/** What t() returns for every key in test mode, regardless of language or key text. */
-export const TEST_TRANSLATION_VALUE = '[test-translation]';
 
 const getStoredLanguage = async (storage: I18nPlatform['storage']): Promise<string> => {
   try {
@@ -40,27 +37,29 @@ let reporter: UnknownStringReporter | null = null;
 
 export interface InitI18nOptions {
   /**
-   * For UI tests / offline demos: t() always returns TEST_TRANSLATION_VALUE, no matter
-   * the key or language, and initI18n never attaches the server-backed translation
-   * backend, the unknown-string reporter, or (via translationUpdater's isI18nTestMode
-   * check) the background poller — nothing here talks to the server. Defaults to false.
+   * For UI tests / offline demos: t() skips translation and returns the text it was asked
+   * to translate (the key itself, as is), no matter the language, and initI18n never
+   * attaches the server-backed translation backend, the unknown-string reporter, or (via
+   * translationUpdater's isI18nNoTranslation check) the background poller — nothing here
+   * talks to the server. Defaults to false.
    */
-  testMode?: boolean;
+  noTranslation?: boolean;
 }
 
 /**
  * Called once from the app root, before the app renders — never from a test. `platform`
  * supplies the storage/lifecycle primitives that differ between web and React Native
- * (see app.Impl/i18n/platform.ts in each app); everything else here is shared.
+ * (app.Commons/i18n/platform.ts in the RN app, portal.Commons/i18n/platform.ts in the
+ * portal); everything else here is shared.
  */
 export async function initI18n(platform: I18nPlatform, options?: InitI18nOptions): Promise<void> {
-  const testMode = options?.testMode ?? false;
+  const noTranslation = options?.noTranslation ?? false;
   setI18nPlatform(platform);
-  setI18nTestMode(testMode);
+  setI18nNoTranslation(noTranslation);
 
   const storedLanguage = await getStoredLanguage(platform.storage);
 
-  if (testMode) {
+  if (noTranslation) {
     await i18next
       .use(initReactI18next)
       .init({
@@ -68,10 +67,14 @@ export async function initI18n(platform: I18nPlatform, options?: InitI18nOptions
         fallbackLng: false,
         defaultNS: TRANSLATION_NAMESPACE,
         interpolation: { escapeValue: false },
+        // Keys are free-form English text, so "." and ":" inside them must not be read as
+        // key / namespace separators.
+        keySeparator: false,
+        nsSeparator: false,
         // No backend, no resources — every key is "missing" by construction, so this
-        // handler alone decides what every t() call returns.
+        // handler alone decides what every t() call returns: the key itself.
         resources: {},
-        parseMissingKeyHandler: () => TEST_TRANSLATION_VALUE,
+        parseMissingKeyHandler: (key: string) => key,
       });
     return;
   }

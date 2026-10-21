@@ -1,7 +1,7 @@
 import { installApiMock, jsonResponse } from '@test-utils';
 import { apiSlice } from '@/client-side.Commons/dataLayer/core/apiSlice';
 import { makeStore } from '@/client-side.Commons/dataLayer/core/store';
-import { userApi } from '@/app.Commons/dataLayer/api/user/myUserApi';
+import { userApi } from '@/client-side.Commons/dataLayer/api/user/myUserApi';
 import { LocationService } from '@/app.Commons/services/location/locationService';
 import { registerOfflineMutation } from './offlineMutation';
 import { getOutbox } from './outbox';

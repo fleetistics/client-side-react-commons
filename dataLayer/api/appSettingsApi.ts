@@ -1,7 +1,7 @@
 import ObjectUtils from "@/client-side.Commons/helpers/ObjectUtils";
-import { AppUserSettingsService } from "@/app.Commons/services/AppUserSettingsService";
+//import { AppUserSettingsService } from "@/app.Commons/services/AppUserSettingsService";
 
-import { LocalSettings } from "@/app.Impl/services/LocalSettings";
+import { LocalSettings } from "@/client-side.Impl/services/LocalSettings";
 import { store } from "@/client-side.Commons/dataLayer/core/store";
 import { MutationState, QueryState } from "@/client-side.Commons/dataLayer/core/api";
 import { apiSlice } from "@/client-side.Commons/dataLayer/core/apiSlice";

@@ -1,6 +1,6 @@
 /**
  * Helpers for deriving app-facing DTO types from the generated OpenAPI models
- * (`dataLayer/open-api`, refreshed via `yarn generate:api:codegen`). The schema
+ * (`dataLayer/open-api`, refreshed via `pnpm generate:api:codegen`). The schema
  * marks every property optional/nullable — System.Text.Json's schema exporter
  * doesn't encode C# non-nullability — so these narrow specific fields back to
  * what an endpoint actually always returns, while still sourcing the field

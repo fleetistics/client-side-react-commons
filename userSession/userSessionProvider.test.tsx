@@ -8,7 +8,7 @@ import { UserSessionProvider } from './userSessionProvider';
 // own test file. Here we only need to verify UserSessionProvider renders it on a 401 and
 // wires reloadSessionFunc correctly, so a minimal stand-in keeps this file focused on
 // UserSessionProvider's own branching.
-jest.mock('@/app.Impl/userSession/noauth-ui', () => {
+jest.mock('@/client-side.Impl/userSession/noauth-ui', () => {
   const { Pressable, Text: RNText } = require('react-native');
   return {
     NoAuthUI: (props: { reloadSessionFunc?: () => void }) => (

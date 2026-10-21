@@ -3,8 +3,9 @@
  * language, and knowing when the app/tab moves to and from the background. Everything
  * else in this folder is plain JS/React and runs unmodified on web and React Native —
  * only these two concerns differ (localStorage/document vs. AsyncStorage/AppState), so
- * each platform supplies one small adapter (see app.Impl/i18n/platform.ts) instead of
- * this code branching on platform itself.
+ * each platform supplies one small adapter (app.Commons/i18n/platform.ts for RN,
+ * portal.Commons/i18n/platform.ts for web) instead of this code branching on platform
+ * itself.
  */
 export interface I18nStorageAdapter {
   getItem(key: string): Promise<string | null>;
@@ -38,19 +39,19 @@ export function getI18nPlatform(): I18nPlatform {
   return current;
 }
 
-let testMode = false;
+let noTranslation = false;
 
-/** Set once by initI18n() at app startup, from its `testMode` option. */
-export function setI18nTestMode(enabled: boolean): void {
-  testMode = enabled;
+/** Set once by initI18n() at app startup, from its `noTranslation` option. */
+export function setI18nNoTranslation(enabled: boolean): void {
+  noTranslation = enabled;
 }
 
 /**
- * True when initI18n() was called with `testMode: true` — every t() call returns the
- * same fixed string with no backend attached, and background polling/reporting never
+ * True when initI18n() was called with `noTranslation: true` — every t() call returns the
+ * text it was given with no backend attached, and background polling/reporting never
  * start, so nothing in this module talks to the server. Read by translationUpdater
  * (skip polling) and i18n.ts itself (skip the backend, the reporter, and saveMissing).
  */
-export function isI18nTestMode(): boolean {
-  return testMode;
+export function isI18nNoTranslation(): boolean {
+  return noTranslation;
 }

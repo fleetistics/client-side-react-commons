@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import i18next from 'i18next';
 import { fetchTranslationTable } from './translationBackend';
-import { getI18nPlatform, isI18nTestMode } from './platform';
+import { getI18nPlatform, isI18nNoTranslation } from './platform';
 
 export const DEFAULT_POLL_INTERVAL_MS = 5 * 60 * 1000;
 export const TRANSLATION_NAMESPACE = 'translation';
@@ -32,13 +32,13 @@ export async function pollTranslationUpdates(
  * run (it reads the platform initI18n() registered, to know when the app/tab regains
  * the foreground). Polls on a timer plus an immediate extra poll on foreground, so a
  * session left backgrounded catches up right away instead of waiting out the interval.
- * A no-op in test mode (see initI18n's `testMode` option) — never polls the server.
+ * A no-op when initI18n() got `noTranslation: true` — never polls the server.
  */
 export function useTranslationUpdater(intervalMs: number = DEFAULT_POLL_INTERVAL_MS): void {
   const sinceRef = useRef(Math.floor(Date.now() / 1000));
 
   useEffect(() => {
-    if (isI18nTestMode()) {
+    if (isI18nNoTranslation()) {
       return;
     }
 

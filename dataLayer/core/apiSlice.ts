@@ -11,7 +11,7 @@ import {
 import { newTraceContext, recordTrace } from './traceContext';
 import { USER_SESSION_CONSTS } from '@/app.Impl/configs/userSession-consts';
 import { APP_CONFIG } from '@/app.Impl/configs/app-config';
-import { ClientSideInfoProvider } from '@/app.Impl/userSession/ClientSideInfoProvider';
+import { ClientSideInfoProvider } from '@/client-side.Impl/userSession/ClientSideInfoProvider';
 
 // Session-establishing endpoints: a 401 from these is a normal answer ("not signed
 // in" / "wrong credentials"), not an expired access token — so no refresh attempt

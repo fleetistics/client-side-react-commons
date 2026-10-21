@@ -1,9 +1,9 @@
 import { useEffect } from 'react';
 import { getErrorMessage, getErrorStatus } from '@/client-side.Commons/dataLayer/core/apiError';
 import { setOnAuthLost } from '@/client-side.Commons/dataLayer/core/apiSlice';
-import { InitError } from '@/app.Impl/initComponents/init-error';
-import { InitWaiter } from '@/app.Impl/initComponents/init-waiter';
-import { NoAuthUI } from '@/app.Impl/userSession/noauth-ui';
+import { InitError } from '@/client-side.Impl/bootstrap/init-error';
+import { InitWaiter } from '@/client-side.Impl/bootstrap/init-waiter';
+import { NoAuthUI } from '@/client-side.Impl/userSession/noauth-ui';
 import { UserSession_ValidSession  } from './userSession_ValidSession';
 import { useCheckSessionQuery } from './userSessionApi';
 import { APP_CONFIG } from '@/app.Impl/configs/app-config';
