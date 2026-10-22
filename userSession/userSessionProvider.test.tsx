@@ -1,7 +1,7 @@
 import { Text } from 'react-native';
 import { cleanup, fireEvent, installApiMock, jsonResponse, renderApp, screen } from '@test-utils';
 import { AuthToken } from '@/client-side.Commons/dataLayer/core/apiSlice';
-import { USER_SESSION_CONSTS } from '@/app.Impl/configs/userSession-consts';
+import { USER_SESSION_CONSTS } from '@/client-side.Impl/config/userSession-consts';
 import { UserSessionProvider } from './userSessionProvider';
 
 // The real NoAuthUI mounts a react-navigation native-stack around LoginPage — worth its

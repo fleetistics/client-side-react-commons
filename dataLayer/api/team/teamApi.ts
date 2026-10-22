@@ -1,5 +1,5 @@
 import { apiSlice } from '@/client-side.Commons/dataLayer/core/apiSlice';
-import { APP_URLS } from '@/app.Impl/configs/app-urls';
+import { APP_URLS } from '@/client-side.Impl/config/app-urls';
 import type { TeamCreateDto, TeamCreatePatchDto } from '@/client-side.Commons/dataLayer/open-api';
 
 // Mirrors api-server's TeamController. A team is set up in three steps: create (Creating status),

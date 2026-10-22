@@ -9,8 +9,8 @@ import {
 } from '@reduxjs/toolkit/query/react';
 
 import { newTraceContext, recordTrace } from './traceContext';
-import { USER_SESSION_CONSTS } from '@/app.Impl/configs/userSession-consts';
-import { APP_CONFIG } from '@/app.Impl/configs/app-config';
+import { USER_SESSION_CONSTS } from '@/client-side.Impl/config/userSession-consts';
+import { APP_CONFIG } from '@/client-side.Impl/config/app-config';
 import { ClientSideInfoProvider } from '@/client-side.Impl/userSession/ClientSideInfoProvider';
 
 // Session-establishing endpoints: a 401 from these is a normal answer ("not signed

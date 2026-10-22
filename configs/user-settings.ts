@@ -1,9 +1,9 @@
-import { UserSettingsEnum } from "./user-settings-enums";
+import { CommonUserSettingsEnum } from "./user-settings-enum";
 
-export class UserSettings {
+export class CommonUserSettings {
     public static GetSettings() {
         const res = {} as any;
-        res[UserSettingsEnum.kbUrl] = 'https://crewchief.biz/knowledgebase?solution_id=';
+        res[CommonUserSettingsEnum.kbUrl] = 'https://crewchief.biz/knowledgebase?solution_id=';
 
         return res;
     }

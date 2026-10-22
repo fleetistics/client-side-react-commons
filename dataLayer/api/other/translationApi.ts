@@ -1,5 +1,5 @@
 import { apiSlice } from '@/client-side.Commons/dataLayer/core/apiSlice';
-import { APP_CONFIG } from '@/app.Impl/configs/app-config';
+import { APP_CONFIG } from '@/client-side.Impl/config/app-config';
 import type { TranslationTable } from '@/client-side.Commons/i18n/translationTypes';
 
 const BASE_TRANSLATIONS_URL = APP_CONFIG.BASE_API_URL + 'translations';

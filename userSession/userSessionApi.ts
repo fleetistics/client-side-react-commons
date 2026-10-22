@@ -4,7 +4,7 @@ import { apiSlice, AuthToken } from '@/client-side.Commons/dataLayer/core/apiSli
 import { ClientSideInfoProvider } from '@/client-side.Impl/userSession/ClientSideInfoProvider';
 
 import type { CheckSessionResult, LoginData, UserSessionCheckResponse } from './userSessionDto';
-import { USER_SESSION_CONSTS } from '@/app.Impl/configs/userSession-consts';
+import { USER_SESSION_CONSTS } from '@/client-side.Impl/config/userSession-consts';
 
 /**
  * Session endpoints on the same RTK Query slice as the rest of the app: one data

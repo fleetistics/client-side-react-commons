@@ -32,9 +32,8 @@ type WithOutbox = { outbox: OutboxState };
 
 export const selectOutboxHydrated = (state: WithOutbox) => state.outbox.hydrated;
 
-/** Items belonging to `userId`, oldest first. */
-export const selectUserOutboxItems = (state: WithOutbox, userId: number | undefined) =>
-  userId == null ? [] : state.outbox.items.filter((i) => i.userId === userId);
+/** All queued items, oldest first. */
+export const selectOutboxItems = (state: WithOutbox) => state.outbox.items;
 
 /**
  * Args of the newest not-failed item for `endpointName` - i.e. the value the user last chose
@@ -42,10 +41,9 @@ export const selectUserOutboxItems = (state: WithOutbox, userId: number | undefi
  */
 export function selectLatestPendingArgs<Args>(
   state: WithOutbox,
-  endpointName: string,
-  userId: number | undefined
+  endpointName: string
 ): Args | undefined {
-  const items = selectUserOutboxItems(state, userId).filter(
+  const items = selectOutboxItems(state).filter(
     (i) => i.endpointName === endpointName && i.status !== 'failed'
   );
   return items.length > 0 ? (items[items.length - 1].args as Args) : undefined;

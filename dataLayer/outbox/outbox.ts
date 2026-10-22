@@ -1,31 +1,51 @@
 import type { Middleware, MiddlewareAPI, UnknownAction } from '@reduxjs/toolkit';
 import { v4 as uuidv4 } from 'uuid';
-import { apiSlice } from '../core/apiSlice';
-import { getOfflineMutation, type ArgsOf, type MutationEndpointLike, type OutboxDispatch } from './offlineMutation';
+import { apiSlice, notifyAuthLost } from '../core/apiSlice';
+import {
+  getOfflineMutation,
+  type ArgsOf,
+  type MutationEndpointLike,
+  type OptimisticRecipe,
+  type OutboxDispatch,
+  type RegisteredOfflineMutation,
+  type ResultOf,
+} from './offlineMutation';
 import { outboxHydrated, outboxItemsSet, type OutboxState } from './outboxSlice';
 import type { OutboxItem, OutboxPlatform } from './outboxTypes';
 
 const STORAGE_KEY = 'outbox.v1';
 const RETRY_BASE_MS = 5_000;
 const RETRY_MAX_MS = 120_000;
+// A 5xx is retried this many times (so 1 + 4 sends), then the item is dropped and logged.
+const MAX_SERVER_ERROR_RETRIES = 4;
+// After a 401 (session gone) the item is left alone this long; see the 'auth' case in sendPass.
+const AUTH_PARK_MS = 30_000;
 
 type OutboxStoreApi = MiddlewareAPI<OutboxDispatch, { outbox: OutboxState }>;
 
-// How a failed send is treated:
+// How a failed send is treated (offline mode resends until the server decides):
 //  network   - no response at all (offline, DNS, timeout): keep pending, stop this pass (every
-//              other item would fail the same way), retry with backoff or on the next sign of
-//              connectivity.
-//  transient - the server answered but can't take it now (5xx, 408, 429, and 401: apiSlice has
-//              already tried a token refresh, so the session is gone - the item waits for the
-//              same user to log back in). Keep pending, hold back its entityKeys, back off.
+//              other item would fail the same way), resend endlessly - with backoff, or at the
+//              next sign of connectivity.
+//  transient - the server can't take it right now (408, 429): keep pending, hold back its
+//              entityKeys, resend endlessly with backoff.
+//  server    - 5xx: keep pending and back off, but only MAX_SERVER_ERROR_RETRIES times; then the
+//              item is dropped from the queue (and logged), since the server keeps failing on it.
+//  auth      - 401 (apiSlice already tried a token refresh): the session is gone, so call
+//              notifyAuthLost() - the handler registered with setOnAuthLost sends the UI to login.
+//              Nothing waits for "the same user" to return: logging in clears the queue
+//              (clearOutbox). The item just stays queued, parked so it isn't hammered, and the
+//              pass stops; if the session turns out to be fine, a later successful request resends it.
 //  permanent - any other answer (4xx, unparsable response): mark failed, keep for the UI.
-type FailureKind = 'network' | 'transient' | 'permanent';
+type FailureKind = 'network' | 'transient' | 'server' | 'auth' | 'permanent';
 
 function classifyError(error: unknown): FailureKind {
   const status = (error as { status?: unknown } | undefined)?.status;
   if (status === 'FETCH_ERROR' || status === 'TIMEOUT_ERROR') return 'network';
   if (typeof status === 'number') {
-    return status >= 500 || status === 401 || status === 408 || status === 429 ? 'transient' : 'permanent';
+    if (status === 401) return 'auth';
+    if (status >= 500) return 'server';
+    return status === 408 || status === 429 ? 'transient' : 'permanent';
   }
   return 'permanent';
 }
@@ -34,6 +54,29 @@ function describeError(error: unknown): string {
   const e = error as { status?: unknown; error?: unknown; data?: unknown; message?: unknown } | undefined;
   if (e?.status !== undefined) return `${String(e.status)}${e.error ? `: ${String(e.error)}` : ''}`;
   return e?.message ? String(e.message) : String(error);
+}
+
+/**
+ * RTK reports a 2xx whose body isn't JSON (plain "OK", say) as PARSING_ERROR. The server did
+ * accept the call, so it counts as a success - with no result to hand on.
+ */
+function isAcceptedButUnparsable(error: unknown): boolean {
+  const e = error as { status?: unknown; originalStatus?: unknown } | undefined;
+  return (
+    e?.status === 'PARSING_ERROR' &&
+    typeof e.originalStatus === 'number' &&
+    e.originalStatus >= 200 &&
+    e.originalStatus < 300
+  );
+}
+
+async function unwrapAccepted(request: { unwrap(): Promise<unknown> }): Promise<unknown> {
+  try {
+    return await request.unwrap();
+  } catch (error) {
+    if (isAcceptedButUnparsable(error)) return undefined;
+    throw error;
+  }
 }
 
 const sameKeys = (a: string[], b: string[]) => a.length === b.length && a.every((k) => b.includes(k));
@@ -56,6 +99,10 @@ export class Outbox {
   readonly middleware: Middleware;
 
   constructor() {
+    // Resolves once the saved queue is loaded (or at once in online mode). Everything that
+    // reads or writes the item list waits for it, so nothing overwrites the saved queue
+    // before it has been read.
+    this.hydration = this.chain = new Promise<void>((resolve) => (this.markLoaded = resolve));
     this.middleware = ((api: OutboxStoreApi) => {
       this.store = api;
       return (next) => (action) => {
@@ -66,21 +113,43 @@ export class Outbox {
     }) as Middleware;
   }
 
-  /** Loads the persisted queue and starts sending. Call once at app startup. */
-  start(platform: OutboxPlatform): Promise<void> {
-    if (this.platform) return this.hydration;
+  /**
+   * Hands the Outbox its platform. Call once at app startup. It loads and sends nothing yet:
+   * the saved queue belongs to the logged-in user, so that waits for startSending().
+   */
+  start(platform: OutboxPlatform): void {
+    if (this.platform) return;
     this.platform = platform;
-    this.hydration = this.chain = this.hydrate();
+    startedOutboxes.add(this);
+    this.isOfflineMode = platform.isOfflineMode ?? true;
+    if (!this.isOfflineMode) {
+      // Nothing to load or send; still mark hydrated so code waiting for it (useOutboxHydrated) proceeds.
+      this.dispatch(outboxHydrated([]));
+      this.markLoaded();
+      return;
+    }
     this.unsubscribeForeground = platform.onForeground?.(() => {
       this.clearNetworkBackoff();
       void this.flush();
     });
+    this.beginLoad();
+  }
+
+  /**
+   * Loads the saved queue and starts sending it. Call once the user session is created or
+   * checked (UserSessionProvider does). Safe in any order with start(), and safe to repeat.
+   * Until it has run, offline-mode enqueue() calls wait. Resolves once the queue is loaded.
+   */
+  startSending(): Promise<void> {
+    this.loadRequested = true;
+    this.beginLoad();
     return this.hydration;
   }
 
   /** Stops timers and listeners (tests, or tearing the store down). The queue stays persisted. */
   stop(): void {
     this.stopped = true;
+    startedOutboxes.delete(this);
     if (this.retryTimer) clearTimeout(this.retryTimer);
     this.retryTimer = undefined;
     this.unsubscribeForeground?.();
@@ -92,18 +161,33 @@ export class Outbox {
   }
 
   /**
-   * Queues an offline-first call to a registered endpoint. The optimistic change is applied
-   * before this returns its promise; the promise resolves once the item is persisted - not
-   * when the server has it.
+   * Offline mode (default): queues a call to a registered endpoint. The optimistic change is
+   * applied before this returns its promise; the promise resolves (with nothing) once the item
+   * is persisted - not when the server has it.
+   *
+   * Online mode (platform.isOfflineMode === false): calls the endpoint at once, bypassing the
+   * queue and the optimistic recipes. Resolves with the server's result; rejects with the
+   * standard RTK Query error (FetchBaseQueryError | SerializedError - see core/apiError.ts).
    */
-  async enqueue<E extends MutationEndpointLike>(endpoint: E, args: ArgsOf<E>): Promise<void> {
+  async enqueue<E extends MutationEndpointLike>(endpoint: E, args: ArgsOf<E>): Promise<ResultOf<E> | void> {
     const registered = getOfflineMutation(endpoint.name);
     if (!registered) {
       throw new Error(`Outbox.enqueue: '${endpoint.name}' is not registered with registerOfflineMutation().`);
     }
     if (!this.platform) throw new Error('Outbox.enqueue: called before outbox.start().');
-    const userId = this.platform.getUserId();
-    if (userId == null) throw new Error('Outbox.enqueue: no logged-in user.');
+
+    if (!this.isOfflineMode) {
+      const request = this.dispatch(registered.endpoint.initiate(args));
+      try {
+        const result = await unwrapAccepted(request);
+        this.reconcile(registered, result, args);
+        return result as ResultOf<E>;
+      } finally {
+        request.reset?.();
+      }
+    }
+
+    if (this.platform.getUserId() == null) throw new Error('Outbox.enqueue: no logged-in user.');
 
     const { def } = registered;
     const item: OutboxItem = {
@@ -111,7 +195,6 @@ export class Outbox {
       endpointName: endpoint.name,
       args,
       entityKeys: def.entityKeys(args),
-      userId,
       createdAt: Date.now(),
       status: 'pending',
       attempts: 0,
@@ -128,7 +211,6 @@ export class Outbox {
           ? items.filter(
               (i) =>
                 !(
-                  i.userId === userId &&
                   i.endpointName === item.endpointName &&
                   i.status !== 'sending' &&
                   sameKeys(i.entityKeys, item.entityKeys)
@@ -183,17 +265,47 @@ export class Outbox {
     this.invalidate(item.entityKeys);
   }
 
+  /**
+   * Drops everything queued - pending, in flight and failed - from memory and from storage,
+   * and refetches what it touched. For when the saved data no longer belongs to the app's
+   * user (login, logout). A send already on the wire may still reach the server. Await it
+   * before the new session is checked, so startSending() can't load the old queue.
+   */
+  async clear(): Promise<void> {
+    this.backoff.clear();
+    if (this.retryTimer) clearTimeout(this.retryTimer);
+    this.retryTimer = undefined;
+    if (!this.platform) return;
+    if (!this.loadStarted) {
+      // Not loaded yet (no session so far): there is nothing in memory, only the stored copy.
+      try {
+        await this.platform.storage.setItem(STORAGE_KEY, JSON.stringify({ version: 1, items: [] }));
+      } catch (error) {
+        console.warn('[Outbox] could not clear the saved queue', error);
+      }
+      return;
+    }
+    await this.hydration;
+    const dropped = this.items();
+    await this.mutate(() => []);
+    this.invalidate([...new Set(dropped.flatMap((i) => i.entityKeys))]);
+  }
+
   // ---- internals ----
 
   private store?: OutboxStoreApi;
   private platform?: OutboxPlatform;
-  private hydration: Promise<void> = Promise.resolve();
+  private hydration: Promise<void>;
+  private markLoaded!: () => void;
+  private loadRequested = false;
+  private loadStarted = false;
   // Serializes every change to the item list (read state -> persist -> dispatch), so two
   // enqueues racing through their `await persist` can't each drop the other's item.
-  private chain: Promise<void> = Promise.resolve();
+  private chain: Promise<void>;
   private flushing?: Promise<void>;
   private rerunRequested = false;
   private stopped = false;
+  private isOfflineMode = true;
   private retryTimer?: ReturnType<typeof setTimeout>;
   private backoff = new Map<string, { at: number; kind: FailureKind; failedAt: number }>();
   private unsubscribeForeground?: () => void;
@@ -207,25 +319,33 @@ export class Outbox {
     return this.store?.getState().outbox.items ?? [];
   }
 
-  private myItems(): OutboxItem[] {
-    const userId = this.currentUserId;
-    return userId == null ? [] : this.items().filter((i) => i.userId === userId);
+  /** Loads once both start() (the platform) and startSending() (a session) have happened. */
+  private beginLoad(): void {
+    if (!this.platform || !this.isOfflineMode || !this.loadRequested || this.loadStarted) return;
+    this.loadStarted = true;
+    void this.hydrate();
   }
 
   private async hydrate(): Promise<void> {
-    let items: OutboxItem[] = [];
     try {
-      const raw = await this.platform!.storage.getItem(STORAGE_KEY);
-      const parsed = raw ? JSON.parse(raw) : null;
-      if (Array.isArray(parsed?.items)) {
-        items = (parsed.items as OutboxItem[]).map((i) => (i.status === 'sending' ? { ...i, status: 'pending' } : i));
+      let items: OutboxItem[] = [];
+      try {
+        const raw = await this.platform!.storage.getItem(STORAGE_KEY);
+        const parsed = raw ? JSON.parse(raw) : null;
+        if (Array.isArray(parsed?.items)) {
+          items = (parsed.items as OutboxItem[]).map((i) => (i.status === 'sending' ? { ...i, status: 'pending' } : i));
+        }
+      } catch (error) {
+        console.warn('[Outbox] could not load the persisted queue - starting empty', error);
       }
+      this.dispatch(outboxHydrated(items));
+      // Queries that loaded before hydration finished don't have these changes applied yet.
+      for (const item of this.items()) if (item.status !== 'failed') this.applyOptimistic(item);
     } catch (error) {
-      console.warn('[Outbox] could not load the persisted queue - starting empty', error);
+      console.error('[Outbox] loading the saved queue failed', error);
+    } finally {
+      this.markLoaded();
     }
-    this.dispatch(outboxHydrated(items));
-    // Queries that loaded before hydration finished don't have these changes applied yet.
-    for (const item of this.myItems()) if (item.status !== 'failed') this.applyOptimistic(item);
     void this.flush();
   }
 
@@ -260,14 +380,50 @@ export class Outbox {
 
   private applyOptimistic(item: OutboxItem, onlyFor?: { endpointName: string; queryArgs: unknown }): void {
     const def = getOfflineMutation(item.endpointName)?.def;
-    for (const recipe of def?.optimistic?.(item.args) ?? []) {
+    // The recipes are the app's code and run on stored data (possibly from an older app version),
+    // inside the store's middleware: one that throws is logged and skipped, never allowed to
+    // break loading the queue or the dispatch of a query's own result.
+    let recipes: OptimisticRecipe[] = [];
+    try {
+      recipes = def?.optimistic?.(item.args) ?? [];
+    } catch (error) {
+      console.error(`[Outbox] optimistic recipes for ${item.endpointName} threw`, error);
+      return;
+    }
+    for (const recipe of recipes) {
       if (onlyFor && (recipe.endpointName !== onlyFor.endpointName || !sameQueryArgs(recipe.queryArgs, onlyFor.queryArgs))) {
         continue;
       }
-      // No-op when that query has no cache entry yet; the recipe is re-applied when it loads.
-      this.dispatch(
-        (apiSlice.util.updateQueryData as any)(recipe.endpointName, recipe.queryArgs, recipe.apply)
-      );
+      try {
+        // No-op when that query has no cache entry yet; the recipe is re-applied when it loads.
+        this.dispatch(
+          (apiSlice.util.updateQueryData as any)(recipe.endpointName, recipe.queryArgs, recipe.apply)
+        );
+      } catch (error) {
+        console.error(`[Outbox] optimistic recipe for ${item.endpointName} threw`, error);
+      }
+    }
+  }
+
+  /** Runs the app's callback; a throw is logged so it can't abort the send pass. */
+  private async guarded(what: string, call: () => unknown): Promise<void> {
+    try {
+      await call();
+    } catch (error) {
+      console.error(`[Outbox] ${what} threw`, error);
+    }
+  }
+
+  /**
+   * Runs def.reconcile for a call the server already accepted. It is the caller's code, so a
+   * throw is logged and swallowed: it must not turn a successful send into a failed one
+   * (onPermanentFailure, a rejected enqueue).
+   */
+  private reconcile(registered: RegisteredOfflineMutation, result: unknown, args: unknown): void {
+    try {
+      registered.def.reconcile?.(result, args, this.dispatch);
+    } catch (error) {
+      console.error('[Outbox] reconcile threw after the server accepted the call', error);
     }
   }
 
@@ -285,7 +441,7 @@ export class Outbox {
       // Fresh server data doesn't contain unsent changes - put them back on top.
       const arg = (action as any).meta?.arg;
       if (arg?.endpointName) {
-        for (const item of this.myItems()) {
+        for (const item of this.items()) {
           if (item.status !== 'failed') {
             this.applyOptimistic(item, { endpointName: arg.endpointName, queryArgs: arg.originalArgs });
           }
@@ -302,11 +458,16 @@ export class Outbox {
     if (
       !this.flushing &&
       (type === `${prefix}executeQuery/fulfilled` || type === `${prefix}executeMutation/fulfilled`) &&
-      this.myItems().some((i) => i.status === 'pending')
+      this.items().some((i) => i.status === 'pending')
     ) {
       this.clearNetworkBackoff(RETRY_BASE_MS);
       void this.flush();
     }
+  }
+
+  /** Still in the queue - an item that was in flight when clear() emptied it is not. */
+  private isQueued(item: OutboxItem): boolean {
+    return this.items().some((i) => i.operationId === item.operationId);
   }
 
   /** A newer item for the same endpoint and entities was queued after `item`. */
@@ -317,7 +478,6 @@ export class Outbox {
       .slice(index + 1)
       .some(
         (i) =>
-          i.userId === item.userId &&
           i.endpointName === item.endpointName &&
           i.status !== 'failed' &&
           sameKeys(i.entityKeys, item.entityKeys)
@@ -342,8 +502,10 @@ export class Outbox {
   private armRetryTimer(): void {
     if (this.retryTimer) clearTimeout(this.retryTimer);
     this.retryTimer = undefined;
-    if (this.stopped || this.backoff.size === 0) return;
-    const earliest = Math.min(...[...this.backoff.values()].map((b) => b.at));
+    // Parked ('auth') items wait for an outside trigger, not a timer.
+    const timed = [...this.backoff.values()].filter((b) => b.kind !== 'auth');
+    if (this.stopped || timed.length === 0) return;
+    const earliest = Math.min(...timed.map((b) => b.at));
     this.retryTimer = setTimeout(() => {
       this.retryTimer = undefined;
       void this.flush();
@@ -353,11 +515,11 @@ export class Outbox {
   private async sendPass(): Promise<void> {
     if (this.currentUserId == null) return;
     const blocked = new Set<string>();
-    for (const i of this.myItems()) if (i.status === 'failed') i.entityKeys.forEach((k) => blocked.add(k));
+    for (const i of this.items()) if (i.status === 'failed') i.entityKeys.forEach((k) => blocked.add(k));
 
     // The item list is kept in enqueue order (and persisted that way), so iterate it as-is -
     // createdAt can tie within a millisecond.
-    const candidates = this.myItems();
+    const candidates = this.items();
     for (const candidate of candidates) {
       if (this.stopped) return;
       // Re-read: an earlier await may have coalesced, discarded or failed this item.
@@ -381,32 +543,64 @@ export class Outbox {
       await this.patchItem(item.operationId, { status: 'sending' }, false);
       const request = this.dispatch(registered.endpoint.initiate(item.args));
       try {
-        const result = await request.unwrap();
+        const result = await unwrapAccepted(request);
+        // clear() ran while this was on the wire: the item is gone and so is its owner's queue.
+        if (!this.isQueued(item)) continue;
         this.backoff.delete(item.operationId);
         await this.mutate((items) => items.filter((i) => i.operationId !== item.operationId));
-        registered.def.reconcile?.(result, item.args, this.dispatch);
+        this.reconcile(registered, result, item.args);
       } catch (error) {
+        // Same: a cleared item gets no retry timer, no backoff entry and no onPermanentFailure.
+        if (!this.isQueued(item)) continue;
         const kind = classifyError(error);
         const lastError = describeError(error);
         const attempts = item.attempts + 1;
+        if (registered.def.coalesce === 'replace' && this.isSuperseded(item)) {
+          // Enqueue never drops an in-flight item; now that this one didn't go through, the
+          // newer value queued behind it makes it pointless to send (or to keep as failed, which
+          // would block that newer value). It is next in this pass, so it gets its own attempt.
+          this.backoff.delete(item.operationId);
+          await this.mutate((items) => items.filter((i) => i.operationId !== item.operationId));
+          if (kind === 'auth') await this.guarded('notifyAuthLost', () => notifyAuthLost());
+          continue;
+        }
         if (kind === 'permanent') {
           this.backoff.delete(item.operationId);
           await this.patchItem(item.operationId, { status: 'failed', attempts, lastError });
           item.entityKeys.forEach((k) => blocked.add(k));
           console.warn(`[Outbox] ${item.endpointName} rejected (${lastError}) - kept as failed`);
           this.invalidate(item.entityKeys);
-          await registered.def.onPermanentFailure?.(item.args, this.dispatch);
+          await this.guarded('onPermanentFailure', () => registered.def.onPermanentFailure?.(item.args, this.dispatch));
           continue;
         }
-        if (registered.def.coalesce === 'replace' && this.isSuperseded(item)) {
-          // Enqueue never drops an in-flight item; now that this one didn't go through, the
-          // newer value queued behind it makes it pointless to send.
-          this.backoff.delete(item.operationId);
-          await this.mutate((items) => items.filter((i) => i.operationId !== item.operationId));
-          if (kind === 'network') return;
+        if (kind === 'server') {
+          const serverErrors = (item.serverErrors ?? 0) + 1;
+          if (serverErrors > MAX_SERVER_ERROR_RETRIES) {
+            this.backoff.delete(item.operationId);
+            await this.mutate((items) => items.filter((i) => i.operationId !== item.operationId));
+            console.error(
+              `[Outbox] ${item.endpointName} dropped after ${serverErrors} server errors (${lastError}); args: ${JSON.stringify(item.args)}`
+            );
+            this.invalidate(item.entityKeys);
+            await this.guarded('onPermanentFailure', () => registered.def.onPermanentFailure?.(item.args, this.dispatch));
+            continue;
+          }
+          await this.patchItem(item.operationId, { status: 'pending', attempts, serverErrors, lastError });
+          this.scheduleRetry({ ...item, attempts }, kind);
+          item.entityKeys.forEach((k) => blocked.add(k));
           continue;
         }
-        await this.patchItem(item.operationId, { status: 'pending', attempts, lastError });
+        if (kind === 'auth') {
+          await this.patchItem(item.operationId, { status: 'pending', attempts, serverErrors: 0, lastError });
+          const now = Date.now();
+          this.backoff.set(item.operationId, { at: now + AUTH_PARK_MS, kind, failedAt: now });
+          console.warn(`[Outbox] ${item.endpointName} not authorized - session lost`);
+          await this.guarded('notifyAuthLost', () => notifyAuthLost());
+          this.armRetryTimer();
+          return;
+        }
+        // Not a 5xx: the "consecutive server errors" count starts over.
+        await this.patchItem(item.operationId, { status: 'pending', attempts, serverErrors: 0, lastError });
         this.scheduleRetry({ ...item, attempts }, kind);
         item.entityKeys.forEach((k) => blocked.add(k));
         if (kind === 'network') return;
@@ -419,6 +613,15 @@ export class Outbox {
 }
 
 const outboxes = new WeakMap<object, Outbox>();
+const startedOutboxes = new Set<Outbox>();
+
+/**
+ * Empties the saved queue of every started Outbox - callable from anywhere (e.g. the login
+ * flow), no store needed. Offline-first data saved by one user must not be sent as another.
+ */
+export async function clearOutbox(): Promise<void> {
+  await Promise.all([...startedOutboxes].map((outbox) => outbox.clear()));
+}
 
 /** Associates an Outbox with the store its middleware was installed in (see makeStore). */
 export function registerOutboxForStore(store: object, outbox: Outbox): void {

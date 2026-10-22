@@ -18,11 +18,11 @@ export interface OutboxItem {
    * failed item holds back later items for its keys, but never items for other keys.
    */
   entityKeys: string[];
-  /** Who enqueued it. Items are only ever sent, or shown, for the same logged-in user. */
-  userId: number;
   createdAt: number;
   status: OutboxItemStatus;
   attempts: number;
+  /** Consecutive sends that failed with a 5xx (reset by any other failure); dropped once over the retry limit. */
+  serverErrors?: number;
   lastError?: string;
 }
 
@@ -37,7 +37,18 @@ export interface OutboxStorageAdapter {
 
 export interface OutboxPlatform {
   storage: OutboxStorageAdapter;
-  /** Current logged-in user, or undefined before a session exists (nothing is sent then). */
+  /**
+   * System-wide, read once by Outbox.start(). true (default): enqueue() queues the call and
+   * resolves once it is persisted (React Native: the device may be offline at any moment).
+   * false: nothing is queued or persisted - enqueue() calls the server at once, resolves with
+   * the result and rejects with the RTK Query error (web: the server is expected to be there).
+   */
+  isOfflineMode?: boolean;
+  /**
+   * Current logged-in user, or undefined before a session exists - the gate for enqueuing and
+   * sending. The queue itself is not per user: whatever is in it was queued by the current user
+   * (clearOutbox() empties it when the session changes).
+   */
   getUserId(): number | undefined;
   /** Optional send trigger: called when the app returns to the foreground. Returns an unsubscribe. */
   onForeground?(listener: () => void): () => void;

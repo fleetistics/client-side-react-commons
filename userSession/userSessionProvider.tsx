@@ -1,12 +1,14 @@
 import { useEffect } from 'react';
+import { useStore } from 'react-redux';
 import { getErrorMessage, getErrorStatus } from '@/client-side.Commons/dataLayer/core/apiError';
 import { setOnAuthLost } from '@/client-side.Commons/dataLayer/core/apiSlice';
+import { getOutbox } from '@/client-side.Commons/dataLayer/outbox/outbox';
 import { InitError } from '@/client-side.Impl/bootstrap/init-error';
 import { InitWaiter } from '@/client-side.Impl/bootstrap/init-waiter';
 import { NoAuthUI } from '@/client-side.Impl/userSession/noauth-ui';
-import { UserSession_ValidSession  } from './userSession_ValidSession';
+import { UserSession_ValidSession } from './userSession_ValidSession';
 import { useCheckSessionQuery } from './userSessionApi';
-import { APP_CONFIG } from '@/app.Impl/configs/app-config';
+import { APP_CONFIG } from '@/client-side.Impl/config/app-config';
 import { UserSessionContext } from './userSessionContext';
 
 export function UserSessionProvider(props: {
@@ -28,6 +30,23 @@ export function UserSessionProvider(props: {
     });
     return () => setOnAuthLost(null);
   }, [refetch]);
+
+  // The saved offline queue belongs to the logged-in user: load and send it only once a
+  // session exists (mock, or a successful session check).
+  const store = useStore();
+  // Same condition as the one below that renders <UserSession_ValidSession>.
+  const hasSession = props.mockSession != null || (!isLoading && !isError && data !== undefined);
+  useEffect(() => {
+    if (hasSession) void getOutbox(store).startSending();
+    if (data) {
+      UserSessionContext.AssignValues(
+        APP_CONFIG.ClientAppId,
+        data.clientInfo.PlatformId,
+        data.serverSessionInfo.SessionId,
+        data.serverSessionInfo.UserId
+      );
+    }
+  }, [hasSession, store]);
 
   if (props.mockSession) {
     UserSessionContext.AssignValues(
@@ -65,12 +84,7 @@ export function UserSessionProvider(props: {
   if (data === undefined) {
     return <InitError errorMsg="Session check failed: no data returned" retryFunc={refetch} />;
   }
-  UserSessionContext.AssignValues(
-    APP_CONFIG.ClientAppId,
-    data.clientInfo.PlatformId,
-    data.serverSessionInfo.SessionId,
-    data.serverSessionInfo.UserId
-  );
+
   return (
     <UserSession_ValidSession
       UserId={data.serverSessionInfo.UserId}

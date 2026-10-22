@@ -1,7 +1,7 @@
 import { configureStore } from '@reduxjs/toolkit';
 import { setupListeners } from '@reduxjs/toolkit/query';
 import { apiSlice } from './apiSlice';
-import locationStateReducer from '@/app.Commons/dataLayer/api/other/locationApi';
+import { ExtraStoreProvider } from '@/client-side.Impl/bootstrap/extra-store-provider';
 import outboxReducer from '../outbox/outboxSlice';
 import { Outbox, registerOutboxForStore } from '../outbox/outbox';
 
@@ -18,7 +18,7 @@ export const makeStore = (options?: { autoBatch?: boolean }) => {
   const outbox = new Outbox();
   const created = configureStore({
     reducer: {
-      locationState: locationStateReducer,
+      ...ExtraStoreProvider.GetReducers(),
       outbox: outboxReducer,
       [apiSlice.reducerPath]: apiSlice.reducer,
     },

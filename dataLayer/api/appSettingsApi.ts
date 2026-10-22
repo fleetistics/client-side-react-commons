@@ -1,14 +1,14 @@
 import ObjectUtils from "@/client-side.Commons/helpers/ObjectUtils";
-//import { AppUserSettingsService } from "@/app.Commons/services/AppUserSettingsService";
-
 import { LocalSettings } from "@/client-side.Impl/services/LocalSettings";
 import { store } from "@/client-side.Commons/dataLayer/core/store";
 import { MutationState, QueryState } from "@/client-side.Commons/dataLayer/core/api";
 import { apiSlice } from "@/client-side.Commons/dataLayer/core/apiSlice";
 import { UserSessionContext } from "@/client-side.Commons/userSession/userSessionContext";
-import { UserSettings } from "@/client-side.Commons/configs/user-settings";
-import { AppCommonUserSettings } from "@/app.Commons/configs/user-settings";
-import { AppUserSettings } from "@/app.Impl/configs/user-settings";
+import { StaticAppSettings } from "@/client-side.Commons/lib/StaticAppSettings";
+
+import { BaseUserSettingsProvider } from "@/client-side.Impl/config/base-user-settings-provider";
+
+
 
 type ClientAppUserSettings = {
     Settings: any,
@@ -45,7 +45,7 @@ const appSettingsApi = apiSlice/*.enhanceEndpoints({ addTagTypes: ['RawClientApp
                     if (results![0].error) return { error: results[0].error };
                     //console.log("getRawClientAppUserSettings result", results)
                     const res = {
-                        BaseSettings: UserSettings.GetSettings(),
+                        BaseSettings: BaseUserSettingsProvider.GetSettings(),
                         Settings: {},
                         InstanceSettings: {},
                         ServerSettings: {}
@@ -71,9 +71,6 @@ const appSettingsApi = apiSlice/*.enhanceEndpoints({ addTagTypes: ['RawClientApp
                         res.SessionSettings = {};
                         console.error(`getRawClientAppUserSettings SessionSettings parsing failed `, error, results[2]);
                     }
-                    ObjectUtils.extendEntity(AppCommonUserSettings.GetSettings(), res.BaseSettings);
-                    ObjectUtils.extendEntity(AppUserSettings.GetSettings(), res.BaseSettings);
-                    ObjectUtils.extendEntity(res.BaseSettings, res.Settings);
                     results![0].data.forEach((item: { Name: string, Value?: string }) => {
                         if (item.Value != undefined) {
                             try {
@@ -92,8 +89,8 @@ const appSettingsApi = apiSlice/*.enhanceEndpoints({ addTagTypes: ['RawClientApp
                     if (res.SessionSettings) ObjectUtils.extendEntity(res.SessionSettings, res.Settings);
                     else res.SessionSettings = {};
                     //console.log("setAppUserSettings #1");
-                    AppUserSettingsService.setAppUserSettings(res.Settings);
-                    AppUserSettingsService.notifyAll();
+                    StaticAppSettings.setAppUserSettings(res.Settings);
+                    StaticAppSettings.notifyAll();
                     return { data: res };
                 }
                 catch (error) {
@@ -124,8 +121,8 @@ const appSettingsApi = apiSlice/*.enhanceEndpoints({ addTagTypes: ['RawClientApp
                             //console.log("new settings", JSON.stringify(request))
                             //console.log("setAppUserSettings #2");
                             //console.log("saveInstanceSettings");
-                            AppUserSettingsService.setAppUserSettings(request.Settings);
-                            AppUserSettingsService.notifyPathChanged(arg.name);
+                            StaticAppSettings.setAppUserSettings(request.Settings);
+                            StaticAppSettings.notifyPathChanged(arg.name);
                         }
                     }));
                     return { data: arg.name };
@@ -172,8 +169,8 @@ const appSettingsApi = apiSlice/*.enhanceEndpoints({ addTagTypes: ['RawClientApp
                             request.SessionSettings = tmpSessionSettings;
                             //console.log("setAppUserSettings #3");
                             //console.log("saveSessionSettings");
-                            AppUserSettingsService.setAppUserSettings(request.Settings);
-                            AppUserSettingsService.notifyPathChanged(arg.name);
+                            StaticAppSettings.setAppUserSettings(request.Settings);
+                            StaticAppSettings.notifyPathChanged(arg.name);
                         }
                     }));
                     return { data: arg.name };
@@ -236,8 +233,8 @@ const appSettingsApi = apiSlice/*.enhanceEndpoints({ addTagTypes: ['RawClientApp
                             //console.log(`dispatch(appSettingsApi.util.updateQueryData("getRawClientAppUserSettings" (${arg.name}) #1`, JSON.stringify(request));
                             //console.log("setAppUserSettings #4", request.Settings);
                             //console.log("saveLocalSettings", request.Settings);
-                            AppUserSettingsService.setAppUserSettings(request.Settings);
-                            AppUserSettingsService.notifyPathChanged(arg.name);
+                            StaticAppSettings.setAppUserSettings(request.Settings);
+                            StaticAppSettings.notifyPathChanged(arg.name);
                         }
                     }));
                     return { data: arg.name };
@@ -305,8 +302,8 @@ const appSettingsApi = apiSlice/*.enhanceEndpoints({ addTagTypes: ['RawClientApp
                             }
                             //console.log("setAppUserSettings #5");
                             //console.log("saveServerSettings");
-                            AppUserSettingsService.setAppUserSettings(request.Settings);
-                            AppUserSettingsService.notifyPathChanged(data.name);
+                            StaticAppSettings.setAppUserSettings(request.Settings);
+                            StaticAppSettings.notifyPathChanged(data.name);
                         }
                     }));
                 }

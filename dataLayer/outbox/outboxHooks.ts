@@ -2,7 +2,7 @@ import { useCallback } from 'react';
 import { shallowEqual, useSelector, useStore } from 'react-redux';
 import type { ArgsOf, MutationEndpointLike } from './offlineMutation';
 import { getOutbox } from './outbox';
-import { selectLatestPendingArgs, selectOutboxHydrated, selectUserOutboxItems, type OutboxState } from './outboxSlice';
+import { selectLatestPendingArgs, selectOutboxHydrated, selectOutboxItems, type OutboxState } from './outboxSlice';
 import type { OutboxItem } from './outboxTypes';
 
 type WithOutbox = { outbox: OutboxState };
@@ -24,12 +24,10 @@ export interface OutboxEntityStatus {
   failed?: OutboxItem;
 }
 
-/** Sync state of one entity key (e.g. "UserLocationPrivacy:ME") for the current user. */
+/** Sync state of one entity key (e.g. "UserLocationPrivacy:ME"). */
 export function useOutboxStatus(entityKey: string): OutboxEntityStatus {
-  const store = useStore();
-  const userId = getOutbox(store).currentUserId;
   return useSelector((state: WithOutbox) => {
-    const items = selectUserOutboxItems(state, userId).filter((i) => i.entityKeys.includes(entityKey));
+    const items = selectOutboxItems(state).filter((i) => i.entityKeys.includes(entityKey));
     return {
       isPending: items.some((i) => i.status !== 'failed'),
       isSending: items.some((i) => i.status === 'sending'),
@@ -40,9 +38,7 @@ export function useOutboxStatus(entityKey: string): OutboxEntityStatus {
 
 /** The latest not-yet-confirmed args queued for `endpoint`, or undefined. */
 export function useLatestPendingArgs<E extends MutationEndpointLike>(endpoint: E): ArgsOf<E> | undefined {
-  const store = useStore();
-  const userId = getOutbox(store).currentUserId;
-  return useSelector((state: WithOutbox) => selectLatestPendingArgs<ArgsOf<E>>(state, endpoint.name, userId));
+  return useSelector((state: WithOutbox) => selectLatestPendingArgs<ArgsOf<E>>(state, endpoint.name));
 }
 
 /** True once the persisted queue has been loaded (see Outbox.start). */
