@@ -15,10 +15,6 @@ import type { UserDto } from './UserDto';
 import type { UserLocationPrivacyDto } from './UserLocationPrivacyDto';
 import type { UserMessageDto } from './UserMessageDto';
 export type TeamContextDelta = {
-    /**
-     * Cursor for the next delta call: server time as unix MILLISECONDS (UTC), rounded down.
-     * Echo it back unchanged as latestUpdateDate.
-     */
     LastUpdate?: number;
     TeamHeader?: TeamHeaderDto;
     TeamDetails?: TeamDetailsDto;

@@ -30,12 +30,12 @@ export class TeamService {
     }
     /**
      * @param requestBody
-     * @returns TeamCreateDto Created
+     * @returns number Created
      * @throws ApiError
      */
     public static postApiTeam(
         requestBody: TeamCreatePatchDto,
-    ): CancelablePromise<TeamCreateDto> {
+    ): CancelablePromise<number> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/team',

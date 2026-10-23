@@ -4,6 +4,9 @@
 /* eslint-disable */
 import type { ClientSideInfo } from '../models/ClientSideInfo';
 import type { LoginData } from '../models/LoginData';
+import type { RegisterUserData } from '../models/RegisterUserData';
+import type { RequestPasswordResetData } from '../models/RequestPasswordResetData';
+import type { ResetPasswordData } from '../models/ResetPasswordData';
 import type { CancelablePromise } from '../core/CancelablePromise';
 import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
@@ -79,6 +82,51 @@ export class AuthService {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/auth_auto/check-session',
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
+    /**
+     * @param requestBody
+     * @returns any OK
+     * @throws ApiError
+     */
+    public static postApiAuthRegister(
+        requestBody: RegisterUserData,
+    ): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/auth/register',
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
+    /**
+     * @param requestBody
+     * @returns any OK
+     * @throws ApiError
+     */
+    public static postApiAuthRequestPasswordReset(
+        requestBody: RequestPasswordResetData,
+    ): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/auth/request-password-reset',
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
+    /**
+     * @param requestBody
+     * @returns any OK
+     * @throws ApiError
+     */
+    public static postApiAuthResetPassword(
+        requestBody: ResetPasswordData,
+    ): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/auth/reset-password',
             body: requestBody,
             mediaType: 'application/json',
         });
