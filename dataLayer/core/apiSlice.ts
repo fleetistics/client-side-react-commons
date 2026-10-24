@@ -1,10 +1,10 @@
 import {
-  BaseQueryFn,
+  type BaseQueryFn,
   createApi,
-  FetchArgs,
+  type FetchArgs,
   fetchBaseQuery,
-  FetchBaseQueryError,
-  FetchBaseQueryMeta,
+  type FetchBaseQueryError,
+  type FetchBaseQueryMeta,
   retry,
 } from '@reduxjs/toolkit/query/react';
 
@@ -15,8 +15,13 @@ import { ClientSideInfoProvider } from '@/client-side.Impl/userSession/ClientSid
 
 // Session-establishing endpoints: a 401 from these is a normal answer ("not signed
 // in" / "wrong credentials"), not an expired access token — so no refresh attempt
-// and no auth-lost notification for them.
-const SESSION_ESTABLISHING_URIS: string[] = [USER_SESSION_CONSTS.CHECK_SESSION_URL, USER_SESSION_CONSTS.LOGIN_URL];
+// and no auth-lost notification for them. Logout is listed too: a 401 there just means
+// the session is already gone, and refreshing a token only to log out would be pointless.
+const SESSION_ESTABLISHING_URIS: string[] = [
+  USER_SESSION_CONSTS.CHECK_SESSION_URL,
+  USER_SESSION_CONSTS.LOGIN_URL,
+  USER_SESSION_CONSTS.LOGOUT_URL,
+];
   
 /**
  * In-memory holder for the .NET bearer token.

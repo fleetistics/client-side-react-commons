@@ -1,5 +1,5 @@
-import { TeamCreateDto } from "../../open-api"
-import { EditUser } from "../user/edit-user";
+import type { TeamCreateDto } from "../../open-api"
+import type { EditUser } from "../user/edit-user";
 
 
 export type EditTeamCreate = TeamCreateDto & {

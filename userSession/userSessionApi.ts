@@ -1,6 +1,7 @@
 import type { QueryReturnValue } from '@reduxjs/toolkit/query';
 import type { FetchBaseQueryError, FetchBaseQueryMeta } from '@reduxjs/toolkit/query/react';
-import { apiSlice, AuthToken } from '@/client-side.Commons/dataLayer/core/apiSlice';
+import { apiSlice, AuthToken, notifyAuthLost } from '@/client-side.Commons/dataLayer/core/apiSlice';
+import { clearOutbox } from '@/client-side.Commons/dataLayer/outbox/outbox';
 import { ClientSideInfoProvider } from '@/client-side.Impl/userSession/ClientSideInfoProvider';
 
 import type { CheckSessionResult, LoginData, UserSessionCheckResponse } from './userSessionDto';
@@ -58,7 +59,26 @@ export const userSessionApi = apiSlice.injectEndpoints({
         body: credentials,
       }),
     }),
+
+    logout: builder.mutation<void, void>({
+      query: () => ({
+        url: USER_SESSION_CONSTS.LOGOUT_URL,
+        method: 'POST',
+      }),
+      // The user is signed out locally whether or not the server call succeeded (e.g. offline,
+      // or the session had already expired): drop the saved offline queue and the token, then
+      // notify auth-lost, which re-runs the session check and swaps in the login UI.
+      onQueryStarted: async (_arg, { queryFulfilled }) => {
+        try {
+          await queryFulfilled;
+        } catch (error) {
+          console.warn('[userSessionApi] logout request failed; signing out locally anyway', error);
+        }
+        await clearOutbox();
+        notifyAuthLost();
+      },
+    }),
   }),
 });
 
-export const { useCheckSessionQuery, useLoginMutation } = userSessionApi;
+export const { useCheckSessionQuery, useLoginMutation, useLogoutMutation } = userSessionApi;

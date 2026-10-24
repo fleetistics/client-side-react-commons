@@ -49,6 +49,29 @@ export const getErrorCategory = (error: unknown): ErrorCategory => {
   return 'OTHER_ERROR';
 };
 
+/**
+ * Per-field explanations from a model-validation answer (`errors: { Field: [messages] }`),
+ * every message kept — [[getErrorMessage]] only returns the first. Empty when the error
+ * carries none. Field names are the server's (PascalCase).
+ */
+export const getFieldErrors = (error: unknown): Record<string, string[]> => {
+  const data = isHttpErrorLike(error) ? error.data : undefined;
+  const errors = (data as { errors?: unknown } | undefined)?.errors;
+  if (typeof errors !== 'object' || errors === null) {
+    return {};
+  }
+  const result: Record<string, string[]> = {};
+  for (const [field, messages] of Object.entries(errors)) {
+    if (Array.isArray(messages)) {
+      const strings = messages.filter((m): m is string => typeof m === 'string' && m !== '');
+      if (strings.length > 0) {
+        result[field] = strings;
+      }
+    }
+  }
+  return result;
+};
+
 export const getErrorMessage = (error: unknown, fallback = 'Unknown error'): string => {
   if (!isHttpErrorLike(error)) {
     // SerializedError (e.g. from a rejected mutation thunk) or a plain Error.

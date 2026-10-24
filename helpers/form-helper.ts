@@ -1,4 +1,4 @@
-import { EditorUploadedMedia, ServerInboundUploadedMedia } from "../dataLayer/model/uploaded-media";
+import type { EditorUploadedMedia, ServerInboundUploadedMedia } from "../dataLayer/model/uploaded-media";
 
 export function BuildFormPatchValue<TPatch extends Record<string, unknown>>(
     values: Record<string, unknown> | null | undefined,

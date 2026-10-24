@@ -1,5 +1,5 @@
-import { EditorUploadedMedia } from "@/client-side.Commons/dataLayer/model/uploaded-media";
-import { UserDto } from "../../open-api";
+import type { EditorUploadedMedia } from "@/client-side.Commons/dataLayer/model/uploaded-media";
+import type { UserDto } from "../../open-api";
 
 
 

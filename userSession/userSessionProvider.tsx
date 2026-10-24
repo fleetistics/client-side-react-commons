@@ -5,6 +5,7 @@ import { setOnAuthLost } from '@/client-side.Commons/dataLayer/core/apiSlice';
 import { getOutbox } from '@/client-side.Commons/dataLayer/outbox/outbox';
 import { InitError } from '@/client-side.Impl/bootstrap/init-error';
 import { InitWaiter } from '@/client-side.Impl/bootstrap/init-waiter';
+import { AssignPasswordUI } from '@/client-side.Impl/userSession/assign-password';
 import { NoAuthUI } from '@/client-side.Impl/userSession/noauth-ui';
 import { UserSession_ValidSession } from './userSession_ValidSession';
 import { useCheckSessionQuery } from './userSessionApi';
@@ -13,13 +14,18 @@ import { UserSessionContext } from './userSessionContext';
 
 export function UserSessionProvider(props: {
   children: React.ReactNode;
+  // Key from a /ResetPassword/<key> link, when the page was opened from one; undefined otherwise.
+  passwordResetKey?: string;
   // Test/harness escape hatch: when set, skips the real checkSession call entirely and renders
   // children under a synthetic session with these values instead. Left undefined in every real
   // app entry point.
   mockSession?: { UserId: number; SessionId: number; PlatformId: number };
 }) {
-  const { data, isLoading, isError, error, refetch } = useCheckSessionQuery(undefined, {
-    skip: props.mockSession != null,
+  // A reset / activation link was opened: the screen below replaces the whole app, so no
+  // session is needed (or checked) until the user has set a password and the page reloaded.
+  const passwordResetKey = props.passwordResetKey?.trim() || undefined;
+  const { data, isLoading, isFetching, isError, error, refetch } = useCheckSessionQuery(undefined, {
+    skip: props.mockSession != null || passwordResetKey !== undefined,
   });
   console.log(`UserSessionProvider::useCheckSessionQuery isLoading {isLoading} isError {isError}  - Data/error:`, data, error);
   // When apiSlice exhausts its refresh path, re-check the session so the UI drops
@@ -48,6 +54,9 @@ export function UserSessionProvider(props: {
     }
   }, [hasSession, store]);
 
+  if (passwordResetKey !== undefined) {
+    return <AssignPasswordUI passwordResetKey={passwordResetKey} />;
+  }
   if (props.mockSession) {
     UserSessionContext.AssignValues(
       APP_CONFIG.ClientAppId,
@@ -66,7 +75,9 @@ export function UserSessionProvider(props: {
       </UserSession_ValidSession>
     );
   }
-  if (isLoading) {
+  // isLoading is only true for the very first fetch; a refetch after a 401 (e.g. right after
+  // login) has no data yet and isError already cleared, so isFetching covers that gap.
+  if (isLoading || (isFetching && data === undefined)) {
     return <InitWaiter loadingLabel="Checking user session..." />;
   }
   if (isError) {
