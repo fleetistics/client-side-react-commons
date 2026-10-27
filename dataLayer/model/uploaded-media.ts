@@ -14,6 +14,8 @@ export type UploadedMedia = {
 export type EditorUploadedMedia = UploadedMedia & {
     // **********************
     Guid: string // added in client side for just selected media
+    FileObject?: any // the File picked from local disk, kept until it is uploaded; absent for media already on the server
+    UploadedStatusId?: number
     // **********************
 }
 export type EditorUploadedMediasPack = {

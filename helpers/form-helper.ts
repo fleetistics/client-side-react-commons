@@ -1,4 +1,16 @@
+import type { FieldValues, UseFormSetError } from "react-hook-form";
+import { getErrorMessage } from "../dataLayer/core/apiError";
 import type { EditorUploadedMedia, ServerInboundUploadedMedia } from "../dataLayer/model/uploaded-media";
+
+// Shows a failed submit as one form-level message (read it with <FormError>); react-hook-form clears it on the next submit.
+// The server's own message wins; the title is the fallback when the error carries none.
+export function ParseFormException<TFieldValues extends FieldValues>(
+    setError: UseFormSetError<TFieldValues>,
+    error: unknown,
+    title: string
+): void {
+    setError("root.server", { type: "server", message: getErrorMessage(error, title) });
+}
 
 export function BuildFormPatchValue<TPatch extends Record<string, unknown>>(
     values: Record<string, unknown> | null | undefined,
@@ -41,6 +53,22 @@ export function BuildFormPatchValue<TPatch extends Record<string, unknown>>(
             }
         });
     }
-    if (!wasPatched) return undefined;  
+    if (!wasPatched) return undefined;
     else return patch;
+}
+
+// The medias picked from local disk that still have to be uploaded: new (no Id), not removed again, holding their file.
+// Once uploaded, set Url on the media with the matching Guid so BuildFormPatchValue sends it as InsertMedias.
+export function BuildMediasToUpload(values: Record<string, unknown> | null | undefined): EditorUploadedMedia[] {
+    const medias = values?.['Medias'];
+    if (!Array.isArray(medias)) return [];
+    return (medias as EditorUploadedMedia[]).filter(media =>
+        media.Id == null && media.PreviewUrl != '**Deleted**' && media.FileObject != null && media.UploadedStatusId !== 1);
+}
+
+export function ResetForm(values: any | null | undefined, getValues: () => Record<string, unknown>, reset: (values: Record<string, unknown>, options?: { keepErrors?: boolean, keepDirty?: boolean, keepDirtyValues?: boolean }) => void): void {
+    if (!values) return;
+    const baseline = { ...values };
+    for (const field of Object.keys(getValues())) if (!(field in baseline)) baseline[field] = undefined;
+    reset(baseline, { keepErrors: false, keepDirty: false, keepDirtyValues: false });
 }
