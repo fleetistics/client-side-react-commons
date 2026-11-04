@@ -5,7 +5,6 @@ export default class DateTimeUtils {
     private static mDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     private static mFullMonths = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
     private static mMonths = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    private static mMillSecsInHour = 3600000;
     private static mSecsInDay = 86400;
     private static mLocalTimeZoneOffset = (new Date()).getTimezoneOffset() / -60;
 
@@ -331,7 +330,6 @@ export default class DateTimeUtils {
     static SmartObjTodayTimeOrDateTime(unixTime: number, today?: Date) {
         if (!today) today = new Date();
         const date = DateTimeUtils.RestoreDateFromUnixTime(unixTime);
-        let short;
         if (today.getFullYear() === date.getFullYear() && today.getMonth() === date.getMonth() && today.getDate() === date.getDate()) {
             return [DateTimeUtils.GetFormattedTime(date)];
         }
