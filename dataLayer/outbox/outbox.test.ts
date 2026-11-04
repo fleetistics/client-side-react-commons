@@ -66,10 +66,10 @@ afterEach(() => {
 });
 
 const cachedPrivacy = (store: ReturnType<typeof makeStore>) =>
-  myUserLocationPrivacyApi.endpoints.getUserLocationPrivacy.select()(store.getState()).data;
+  myUserLocationPrivacyApi.endpoints.getMyUserLocationPrivacy.select()(store.getState()).data;
 
 const refetchPrivacy = (store: ReturnType<typeof makeStore>) =>
-  store.dispatch(myUserLocationPrivacyApi.endpoints.getUserLocationPrivacy.initiate(undefined, { forceRefetch: true }));
+  store.dispatch(myUserLocationPrivacyApi.endpoints.getMyUserLocationPrivacy.initiate(undefined, { forceRefetch: true }));
 
 describe('Outbox (offline-first mutations)', () => {
   it('shows a change at once, keeps it across refetches, and sends it once the server is reachable', async () => {

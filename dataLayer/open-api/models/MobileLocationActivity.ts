@@ -2,4 +2,8 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-export type JsonArray = any[];
+export type MobileLocationActivity = {
+    type?: string;
+    confidence?: number;
+};
+

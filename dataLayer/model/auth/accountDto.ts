@@ -1,3 +1,5 @@
+import type { ClientSideInfo } from '@/client-side.Commons/userSession/userSessionDto';
+
 // Request bodies of the anonymous account endpoints (AuthController: register,
 // request-password-reset, reset-password). Property names are PascalCase because that is
 // the server's wire format. Hand-written, not generated: these endpoints postdate the
@@ -10,6 +12,7 @@ export type RegisterUser = {
   DisplayName: string;
   FullName?: string;
   Phone?: string;
+  ClientSideInfo: ClientSideInfo;
 };
 
 /** Asks for a password-reset message. Identifier is the e-mail in UniqueEmail mode, the user name otherwise. */

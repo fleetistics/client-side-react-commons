@@ -6,7 +6,7 @@ import type { Concrete } from '@/client-side.Commons/dataLayer/core/apiTypes';
 
 // UserController returns 200 with both fields populated when a record exists, and 404
 // (not 200-with-empty-body) when the current user has none yet — see myUserLocationPrivacyApi.ts's
-// getUserLocationPrivacy, which turns that 404 into a `null` result rather than an error.
+// getMyUserLocationPrivacy, which turns that 404 into a `null` result rather than an error.
 export type UserLocationPrivacyDto = Concrete<
   UserLocationPrivacyDtoSchema,
   'PrivacyMode' | 'LatestUpdate'

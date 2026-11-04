@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { apiSlice } from '@/client-side.Commons/dataLayer/core/apiSlice';
 
 import type { User } from '../../model/user/userDto';
@@ -30,6 +31,27 @@ export const {
 
 /** Alias for the RTK-generated `useGetMyUserQuery`. */
 export const useGetMyUser = useGetMyUserQuery;
+
+/**
+ * Like useGetMyUser, but reads the user once and then holds it: later changes to the cache
+ * (a patch, an invalidation refetch) don't update the returned value. It shares getMyUser's
+ * cache entry (a cached value is used at once, otherwise it triggers the one fetch), and once
+ * it has a value it skips the query so it stops subscribing.
+ */
+export function useGetOnceMyUser() {
+  const [snapshot, setSnapshot] = useState<User | undefined>(undefined);
+  const result = useGetMyUserQuery(undefined, {
+    skip: snapshot !== undefined,
+  });
+  // Adjusting state during render: React re-renders at once, before anything is committed.
+  if (snapshot === undefined && result.isSuccess && result.data !== undefined) setSnapshot(result.data);
+  return {
+    ...result,
+    data: snapshot,
+    isSuccess: snapshot !== undefined,
+    isFetching: snapshot === undefined && result.isFetching,
+  };
+}
 
 /** Alias for the RTK-generated `usePatchUserMutation`. */
 export const usePatchUser = usePatchUserMutation;

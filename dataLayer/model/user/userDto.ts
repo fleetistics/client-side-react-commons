@@ -8,7 +8,7 @@ import type { Concrete } from '@/client-side.Commons/dataLayer/core/apiTypes';
 // that narrowing already, so we swap it in directly.
 export type User = Concrete<
   UserDtoSchema,
-  'Id' | 'DisplayName' | 'UserName' | 'FullName' | 'Phone' | 'Email' | 'AvatarImage' | 'GovIDImage'>;
+  'Id' | 'DisplayName' | 'UserName' | 'FullName' | 'Phone' | 'Email' | 'AvatarImage' | 'GovIDImage'| 'CompanyId'>;
 
 // export type NewUser = Concrete<
 //   UserDtoSchema,

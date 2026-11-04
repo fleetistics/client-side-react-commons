@@ -16,12 +16,42 @@ export class AuthService {
      * @returns any OK
      * @throws ApiError
      */
+    public static postApiAuthPortalLogin(
+        requestBody: LoginData,
+    ): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/auth/portal_login',
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
+    /**
+     * @param requestBody
+     * @returns any OK
+     * @throws ApiError
+     */
     public static postApiAuthLogin(
         requestBody: LoginData,
     ): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/auth/login',
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
+    /**
+     * @param requestBody
+     * @returns any OK
+     * @throws ApiError
+     */
+    public static postApiAuthAppLogin(
+        requestBody: LoginData,
+    ): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/auth/app_login',
             body: requestBody,
             mediaType: 'application/json',
         });
@@ -91,12 +121,42 @@ export class AuthService {
      * @returns any OK
      * @throws ApiError
      */
+    public static postApiAuthPortalRegister(
+        requestBody: RegisterUserData,
+    ): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/auth/portal_register',
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
+    /**
+     * @param requestBody
+     * @returns any OK
+     * @throws ApiError
+     */
     public static postApiAuthRegister(
         requestBody: RegisterUserData,
     ): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/auth/register',
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
+    /**
+     * @param requestBody
+     * @returns any OK
+     * @throws ApiError
+     */
+    public static postApiAuthAppRegister(
+        requestBody: RegisterUserData,
+    ): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/auth/app_register',
             body: requestBody,
             mediaType: 'application/json',
         });

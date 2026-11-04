@@ -3,7 +3,7 @@ import { Provider } from 'react-redux';
 import { act, installApiMock, jsonResponse, renderHook, waitFor } from '@test-utils';
 import { makeStore } from '@/client-side.Commons/dataLayer/core/store';
 import { getOutbox } from '@/client-side.Commons/dataLayer/outbox/outbox';
-import { SetPrivateModeChangeListener, myUserLocationPrivacyApi, useGetOnceUserPrivacyMode, usePatchUserLocationPrivacy } from './myUserLocationPrivacyApi';
+import { SetPrivateModeChangeListener, myUserLocationPrivacyApi, useGetOnceMyUserPrivacyMode, usePatchMyUserLocationPrivacy } from './myUserLocationPrivacyApi';
 
 const PRIVACY_PATH = '/api/users/me/location-privacy';
 
@@ -28,7 +28,7 @@ async function startStore() {
   return { store, outbox, wrapper };
 }
 
-describe('usePatchUserLocationPrivacy (offline-first)', () => {
+describe('usePatchMyUserLocationPrivacy (offline-first)', () => {
   it('applies the mode on the device, updates the cache, and queues only the final value', async () => {
     const setPrivateMode = jest.fn();
     SetPrivateModeChangeListener({ SetPrivateMode: setPrivateMode });
@@ -39,9 +39,9 @@ describe('usePatchUserLocationPrivacy (offline-first)', () => {
       },
     });
     const { store, outbox, wrapper } = await startStore();
-    await store.dispatch(myUserLocationPrivacyApi.endpoints.getUserLocationPrivacy.initiate());
+    await store.dispatch(myUserLocationPrivacyApi.endpoints.getMyUserLocationPrivacy.initiate());
 
-    const { result } = renderHook(() => usePatchUserLocationPrivacy(), { wrapper });
+    const { result } = renderHook(() => usePatchMyUserLocationPrivacy(), { wrapper });
     await act(async () => {
       await Promise.all([
         result.current({ PrivacyMode: 1 }),
@@ -53,24 +53,24 @@ describe('usePatchUserLocationPrivacy (offline-first)', () => {
 
     expect(setPrivateMode.mock.calls.map(([isPrivate]) => isPrivate)).toEqual([true, false, true]);
     expect(store.getState().outbox.items.map((i) => i.args)).toEqual([{ PrivacyMode: 1 }]);
-    expect(myUserLocationPrivacyApi.endpoints.getUserLocationPrivacy.select()(store.getState()).data?.PrivacyMode).toBe(1);
+    expect(myUserLocationPrivacyApi.endpoints.getMyUserLocationPrivacy.select()(store.getState()).data?.PrivacyMode).toBe(1);
   });
 });
 
-describe('useGetOnceUserPrivacyMode', () => {
+describe('useGetOnceMyUserPrivacyMode', () => {
   it('reads the shared cache once and ignores later changes', async () => {
     installApiMock({ [`GET ${PRIVACY_PATH}`]: () => jsonResponse({ PrivacyMode: 0, LatestUpdate: 1 }) });
     const { store, wrapper } = await startStore();
-    const { result } = renderHook(() => useGetOnceUserPrivacyMode(), { wrapper });
+    const { result } = renderHook(() => useGetOnceMyUserPrivacyMode(), { wrapper });
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(result.current.data).toBe(false);
 
     await act(async () => {
       store.dispatch(
-        myUserLocationPrivacyApi.util.upsertQueryData('getUserLocationPrivacy', undefined, { PrivacyMode: 1, LatestUpdate: 2 })
+        myUserLocationPrivacyApi.util.upsertQueryData('getMyUserLocationPrivacy', undefined, { PrivacyMode: 1, LatestUpdate: 2 })
       );
     });
-    expect(myUserLocationPrivacyApi.endpoints.getUserLocationPrivacy.select()(store.getState()).data?.PrivacyMode).toBe(1);
+    expect(myUserLocationPrivacyApi.endpoints.getMyUserLocationPrivacy.select()(store.getState()).data?.PrivacyMode).toBe(1);
     expect(result.current.data).toBe(false);
   });
 });

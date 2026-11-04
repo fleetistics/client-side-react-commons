@@ -51,11 +51,11 @@ export function SetPrivateModeChangeListener(listener?: IPrivateModeChangeListen
 }
 
 
-/** Alias for the RTK-generated `useGetUserLocationPrivacyQuery`. */
+/** Alias for the RTK-generated `useGetMyUserLocationPrivacyQuery`. */
 export const useGetMyUserLocationPrivacy = useGetMyUserLocationPrivacyQuery;
 
 /**
- * Same cache entry as useGetUserLocationPrivacy, narrowed to the boolean the rest of the app
+ * Same cache entry as useGetMyUserLocationPrivacy, narrowed to the boolean the rest of the app
  * cares about — no record (null) or PrivacyMode <= 0 means location sharing is not private.
  */
 export function useGetMyUserPrivacyMode() {
@@ -68,9 +68,9 @@ export function useGetMyUserPrivacyMode() {
 }
 
 /**
- * Like useGetUserPrivacyMode, but reads the mode once and then holds it: later changes to the
+ * Like useGetMyUserPrivacyMode, but reads the mode once and then holds it: later changes to the
  * cache (the user switching privacy, an invalidation refetch) don't update the returned value.
- * It shares getUserLocationPrivacy's cache entry (a cached value is used at once, otherwise it
+ * It shares getMyUserLocationPrivacy's cache entry (a cached value is used at once, otherwise it
  * triggers the one fetch), and once it has a value it skips the query so it stops subscribing.
  *
  * It waits for the outbox to hydrate before taking the value: the cache only has choices the
@@ -121,7 +121,7 @@ registerOfflineMutation(myUserLocationPrivacyApi.endpoints.patchUserLocationPriv
  * ({ PrivacyMode }) and hands it to the outbox, then applies the mode on this device through
  * the private-mode listener (LocationService), if one is registered.
  *
- * Offline mode (default): applies it to getUserLocationPrivacy's cache (the optimistic recipe
+ * Offline mode (default): applies it to getMyUserLocationPrivacy's cache (the optimistic recipe
  * in registerOfflineMutation above) and queues the PATCH to send when the server is reachable.
  * The promise resolves once the call is queued, not when the server has it. Track sync state
  * with useOutboxStatus(PRIVACY_ENTITY_KEY).

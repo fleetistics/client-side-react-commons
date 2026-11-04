@@ -15,6 +15,22 @@ export class StaticAppSettings {
         return this.mSettings;
     }
 
+    public static getObjAppSettings(name: string, defaultValue?: any): any {
+        return this.mSettings[name] ?? defaultValue;
+    }
+
+    public static getStringAppSettings(name: string, defaultValue: string=""): string  {
+        return this.mSettings[name] ?? defaultValue;
+    }
+
+    public static getBoolAppSettings(name: string, defaultValue: boolean=false): boolean  {
+        return this.mSettings[name] ?? defaultValue;
+    }
+
+    public static getNumberAppSettings(name: string, defaultValue: number=0): number  {
+        return this.mSettings[name] ?? defaultValue;
+    }
+
     public static notifyAll() {
         this.mListeners.forEach(listener => listener(this.mSettings));
     }

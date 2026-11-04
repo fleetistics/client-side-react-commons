@@ -2,7 +2,7 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-import type { JsonArray } from '../models/JsonArray';
+import type { MobileLocation } from '../models/MobileLocation';
 import type { CancelablePromise } from '../core/CancelablePromise';
 import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
@@ -13,7 +13,7 @@ export class MobileGpsService {
      * @throws ApiError
      */
     public static postApiMobileGpsLocationReport(
-        requestBody: JsonArray,
+        requestBody: Array<MobileLocation>,
     ): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'POST',

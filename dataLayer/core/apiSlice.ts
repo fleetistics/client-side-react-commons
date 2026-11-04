@@ -13,14 +13,10 @@ import { USER_SESSION_CONSTS } from '@/client-side.Impl/config/userSession-const
 import { APP_CONFIG } from '@/client-side.Impl/config/app-config';
 import { ClientSideInfoProvider } from '@/client-side.Impl/userSession/ClientSideInfoProvider';
 
-// Session-establishing endpoints: a 401 from these is a normal answer ("not signed
-// in" / "wrong credentials"), not an expired access token — so no refresh attempt
-// and no auth-lost notification for them. Logout is listed too: a 401 there just means
-// the session is already gone, and refreshing a token only to log out would be pointless.
+// A 401 from the session check is a normal "not signed in" answer, not an expired
+// access token, so do not attempt a refresh or emit an auth-lost notification.
 const SESSION_ESTABLISHING_URIS: string[] = [
   USER_SESSION_CONSTS.CHECK_SESSION_URL,
-  USER_SESSION_CONSTS.LOGIN_URL,
-  USER_SESSION_CONSTS.LOGOUT_URL,
 ];
   
 /**

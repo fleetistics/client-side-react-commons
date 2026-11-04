@@ -11,7 +11,7 @@ type EmergencyAlertLocation = {
 export const myUserEmergencyAlertApi = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     // A 404 (no active alert) is a normal, expected outcome here, not an error - mirrors
-    // myUserLocationPrivacyApi.ts's getUserLocationPrivacy.
+    // myUserLocationPrivacyApi.ts's getMyUserLocationPrivacy.
     getMyActiveEmergencyAlert: builder.query<MyUserEmergencyAlertDto | null, void>({
       queryFn: async (_arg, _api, _extraOptions, baseQuery) => {
         const result = await baseQuery(APP_URLS.ACTIVE_EMERGENCY_ALERT_URL);

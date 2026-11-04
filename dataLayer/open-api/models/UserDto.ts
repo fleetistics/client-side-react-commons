@@ -5,6 +5,7 @@
 import type { UploadedMediaDto } from './UploadedMediaDto';
 export type UserDto = {
     Id?: number;
+    CompanyId?: number;
     DisplayName?: string;
     UserName?: string;
     FullName?: string;

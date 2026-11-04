@@ -5,7 +5,7 @@ import { clearOutbox } from '@/client-side.Commons/dataLayer/outbox/outbox';
 import { ClientSideInfoProvider } from '@/client-side.Impl/userSession/ClientSideInfoProvider';
 
 import type { CheckSessionResult, LoginData, UserSessionCheckResponse } from './userSessionDto';
-import { USER_SESSION_CONSTS } from '@/client-side.Impl/config/userSession-consts';
+import { USER_ACCOUNT_CONSTS, USER_SESSION_CONSTS } from '@/client-side.Impl/config/userSession-consts';
 
 /**
  * Session endpoints on the same RTK Query slice as the rest of the app: one data
@@ -52,17 +52,23 @@ export const userSessionApi = apiSlice.injectEndpoints({
       },
     }),
 
-    login: builder.mutation<UserSessionCheckResponse, LoginData>({
-      query: (credentials) => ({
-        url: USER_SESSION_CONSTS.LOGIN_URL,
-        method: 'POST',
-        body: credentials,
-      }),
+    // Callers pass only the credentials; the client info is gathered here at request time.
+    login: builder.mutation<UserSessionCheckResponse, Omit<LoginData, 'ClientSideInfo'>>({
+      queryFn: async (credentials, _api, _extraOptions, baseQuery) => {
+        const clientInfo = await ClientSideInfoProvider.GetInstance().GetInfo();
+        const body: LoginData = { ...credentials, ClientSideInfo: clientInfo };
+        const result = await baseQuery({
+          url: USER_ACCOUNT_CONSTS.LOGIN_URL,
+          method: 'POST',
+          body,
+        });
+        return result as QueryReturnValue<UserSessionCheckResponse, FetchBaseQueryError, FetchBaseQueryMeta>;
+      },
     }),
 
     logout: builder.mutation<void, void>({
       query: () => ({
-        url: USER_SESSION_CONSTS.LOGOUT_URL,
+        url: USER_ACCOUNT_CONSTS.LOGOUT_URL,
         method: 'POST',
       }),
       // The user is signed out locally whether or not the server call succeeded (e.g. offline,

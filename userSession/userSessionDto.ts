@@ -14,6 +14,7 @@ export type LoginData = {
   UserName: string;
   Password: string;
   RememberMe: boolean;
+  ClientSideInfo: ClientSideInfo;
 };
 export type ClientSideInfo = {
   AppUID: string;
