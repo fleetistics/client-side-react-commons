@@ -27,7 +27,7 @@ export enum ClientAppUserSettings_AppLevel {
 const appSettingsApi = apiSlice/*.enhanceEndpoints({ addTagTypes: ['RawClientAppUserSettings'] })*/.injectEndpoints({
     endpoints: builder => ({
         getRawClientAppUserSettings: builder.query<ClientAppUserSettings, void>({
-            async queryFn(_, api, extra, baseQuery) {
+            async queryFn(_arg, _api, _extra, baseQuery) {
                 try {
                     const tasks = [
                         baseQuery({
@@ -101,7 +101,7 @@ const appSettingsApi = apiSlice/*.enhanceEndpoints({ addTagTypes: ['RawClientApp
 
         }),
         saveInstanceSettings: builder.mutation<void, { name: string, value?: any }>({
-            async queryFn(arg, api, extraOptions, baseQuery): Promise<any> {
+            async queryFn(arg, api): Promise<any> {
                 try {
                     api.dispatch(appSettingsApi.util.updateQueryData("getRawClientAppUserSettings", undefined, request => {
                         //console.log('dispatch(appSettingsApi.util.updateQueryData("getRawClientAppUserSettings"', JSON.stringify(request));
@@ -134,7 +134,7 @@ const appSettingsApi = apiSlice/*.enhanceEndpoints({ addTagTypes: ['RawClientApp
             }
         }),
         saveSessionSettings: builder.mutation<void, { name: string, value?: any }>({
-            async queryFn(arg, api, extraOptions, baseQuery): Promise<any> {
+            async queryFn(arg, api): Promise<any> {
                 try {
                     //console.log('saveSessionSettings arg.curSettings ', JSON.stringify(arg.curSettings));
                     const curSettings = await api.dispatch(appSettingsApi.endpoints.getRawClientAppUserSettings.initiate()).unwrap();
@@ -182,7 +182,7 @@ const appSettingsApi = apiSlice/*.enhanceEndpoints({ addTagTypes: ['RawClientApp
             }
         }),
         saveLocalSettings: builder.mutation<void, { name: string, value?: any }>({
-            async queryFn(arg, api, extraOptions, baseQuery): Promise<any> {
+            async queryFn(arg, api): Promise<any> {
                 try {
                     const curSettings = await api.dispatch(appSettingsApi.endpoints.getRawClientAppUserSettings.initiate()).unwrap();
 
