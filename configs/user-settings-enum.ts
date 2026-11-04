@@ -6,3 +6,5 @@ export enum CommonUserSettingsEnum {
     latestMapCenter = 'LatestMapCenter',
     savedPositions = "savedPositions"
 }
+
+//test line
