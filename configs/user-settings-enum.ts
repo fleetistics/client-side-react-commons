@@ -7,4 +7,4 @@ export enum CommonUserSettingsEnum {
     savedPositions = "savedPositions"
 }
 
-//test line #2  
+//test line #3
