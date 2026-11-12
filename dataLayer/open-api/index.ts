@@ -44,7 +44,7 @@ export type { TeamMediaDto } from './models/TeamMediaDto';
 export type { TeamMemberUserDto } from './models/TeamMemberUserDto';
 export type { TeamMemberUserPatchDto } from './models/TeamMemberUserPatchDto';
 export type { TeamPatchDto } from './models/TeamPatchDto';
-export type { TeamPrimaryTargetUserDto } from './models/TeamPrimaryTargetUserDto';
+//export type { TeamPrimaryTargetUserDto } from './models/TeamPrimaryTargetUserDto';
 export type { TranslationEntryDto } from './models/TranslationEntryDto';
 export type { TranslationTableDto } from './models/TranslationTableDto';
 export type { TranslationTokenAdminDto } from './models/TranslationTokenAdminDto';
