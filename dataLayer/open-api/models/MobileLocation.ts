@@ -11,6 +11,10 @@ export type MobileLocation = {
      * Unix timestamp (seconds since epoch, UTC)
      */
     timestamp?: number;
+    /**
+     * Unix timestamp (seconds since epoch, UTC)
+     */
+    recorded_at?: number;
     odometer?: number;
     odometer_error?: number;
     coords?: MobileLocationCoords;

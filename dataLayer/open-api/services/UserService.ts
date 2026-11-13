@@ -22,6 +22,19 @@ export class UserService {
         });
     }
     /**
+     * @returns UserDto OK
+     * @throws ApiError
+     */
+    public static getApiUsersActiveCompanyUsers(): CancelablePromise<Array<UserDto>> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/users/active-company-users',
+            errors: {
+                403: `Forbidden`,
+            },
+        });
+    }
+    /**
      * @param userId
      * @returns void
      * @throws ApiError

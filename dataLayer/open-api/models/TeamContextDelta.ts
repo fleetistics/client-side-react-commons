@@ -9,7 +9,7 @@ import type { TeamActivityDto } from './TeamActivityDto';
 import type { TeamDetailsDto } from './TeamDetailsDto';
 import type { TeamHeaderDto } from './TeamHeaderDto';
 import type { TeamMemberUserDto } from './TeamMemberUserDto';
-
+import type { TeamPrimaryTargetUserDto } from './TeamPrimaryTargetUserDto';
 import type { UploadedMediaDto } from './UploadedMediaDto';
 import type { UserDto } from './UserDto';
 import type { UserLocationPrivacyDto } from './UserLocationPrivacyDto';
@@ -22,7 +22,7 @@ export type TeamContextDelta = {
     RemoveTeamMediaIds?: Array<number>;
     Members?: Array<TeamMemberUserDto>;
     RemoveMemberUserIds?: Array<number>;
-    //TeamPrimaryTargetUser?: TeamPrimaryTargetUserDto;
+    TeamPrimaryTargetUser?: TeamPrimaryTargetUserDto;
     DoRemoveTeamPrimaryTargetUser?: boolean;
     Users?: Array<UserDto>;
     RemoveUserIds?: Array<number>;

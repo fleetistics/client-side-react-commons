@@ -11,6 +11,9 @@ export type UserDto = {
     FullName?: string;
     Phone?: string;
     Email?: string;
+    IsMfaEnabled?: boolean;
+    IsEmailVerified?: boolean;
+    IsPhoneVerified?: boolean;
     AvatarImage?: UploadedMediaDto;
     GovIDImage?: UploadedMediaDto;
 };
