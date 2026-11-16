@@ -3,6 +3,7 @@
 /* tslint:disable */
 /* eslint-disable */
 import type { CompanyDto } from '../models/CompanyDto';
+import type { CompanyUserManagementContextDto } from '../models/CompanyUserManagementContextDto';
 import type { LatestUserSessionDto } from '../models/LatestUserSessionDto';
 import type { PermissionRoleDto } from '../models/PermissionRoleDto';
 import type { User2CompanyDto } from '../models/User2CompanyDto';
@@ -26,6 +27,32 @@ export class CompanyAdminService {
             errors: {
                 403: `Forbidden`,
                 404: `Not Found`,
+            },
+        });
+    }
+    /**
+     * @returns CompanyUserManagementContextDto OK
+     * @throws ApiError
+     */
+    public static getApiCompanyAdminUserManagementContext(): CancelablePromise<CompanyUserManagementContextDto> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/company-admin/user-management-context',
+            errors: {
+                403: `Forbidden`,
+            },
+        });
+    }
+    /**
+     * @returns UserDto OK
+     * @throws ApiError
+     */
+    public static getApiCompanyAdminActiveCompanyUsers(): CancelablePromise<Array<UserDto>> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/company-admin/active-company-users',
+            errors: {
+                403: `Forbidden`,
             },
         });
     }

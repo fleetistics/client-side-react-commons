@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { apiSlice } from '@/client-side.Commons/dataLayer/core/apiSlice';
+import { companyApi } from '@/client-side.Commons/dataLayer/api/company/companyApi';
 
 import type { User } from '../../model/user/userDto';
 import type { UserPatch } from '../../model/user/userPatchDto';
@@ -19,6 +20,26 @@ export const userApi = apiSlice.injectEndpoints({
         body: patch,
       }),
       invalidatesTags: (_result, _error, { userId }) => [{ type: 'User', id: userId }],
+      // The user-management page keeps its own copy of the company's users: bring it up to date without a reload.
+      // No-op when that page's data isn't cached. Images aren't copied (they need the reload that follows an upload).
+      async onQueryStarted({ userId, patch }, { dispatch, queryFulfilled }) {
+        try {
+          await queryFulfilled;
+        } catch {
+          return;
+        }
+        dispatch(
+          companyApi.util.updateQueryData('getUserManagementContext', undefined, (draft) => {
+            const user = draft.Users?.find((x) => x.Id === userId);
+            if (!user) return;
+            if (patch.DisplayName !== undefined) user.DisplayName = patch.DisplayName;
+            if (patch.FullName !== undefined) user.FullName = patch.FullName ?? undefined;
+            if (patch.Phone !== undefined) user.Phone = patch.Phone ?? undefined;
+            if (patch.Email !== undefined) user.Email = patch.Email ?? undefined;
+            if (patch.IsMfaEnabled !== undefined) user.IsMfaEnabled = patch.IsMfaEnabled;
+          }),
+        );
+      },
     }),
   })
 });

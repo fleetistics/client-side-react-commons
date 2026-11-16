@@ -17,6 +17,7 @@ export type LoginData = {
   ClientSideInfo: ClientSideInfo;
 };
 export type ClientSideInfo = {
+  ClientApplicationId: number;
   AppUID: string;
   AppVersion: string;
   DeviceUID: string;

@@ -1600,6 +1600,8 @@ export interface components {
             Longitude?: number;
         };
         ClientSideInfo: {
+            /** Format: int32 */
+            ClientApplicationId?: number;
             AppUID?: string;
             AppVersion?: string;
             DeviceUID?: string;

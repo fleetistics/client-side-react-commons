@@ -3,6 +3,7 @@
 /* tslint:disable */
 /* eslint-disable */
 export type ClientSideInfo = {
+    ClientApplicationId?: number;
     AppUID?: string;
     AppVersion?: string;
     DeviceUID?: string;

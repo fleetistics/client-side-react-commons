@@ -121,12 +121,12 @@ export class AuthService {
      * @returns any OK
      * @throws ApiError
      */
-    public static postApiAuthPortalRegister(
+    public static postApiUserPortalRegister(
         requestBody: RegisterUserData,
     ): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'POST',
-            url: '/api/auth/portal_register',
+            url: '/api/user/portal_register',
             body: requestBody,
             mediaType: 'application/json',
         });
@@ -136,12 +136,12 @@ export class AuthService {
      * @returns any OK
      * @throws ApiError
      */
-    public static postApiAuthRegister(
+    public static postApiUserRegister(
         requestBody: RegisterUserData,
     ): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'POST',
-            url: '/api/auth/register',
+            url: '/api/user/register',
             body: requestBody,
             mediaType: 'application/json',
         });
@@ -151,12 +151,12 @@ export class AuthService {
      * @returns any OK
      * @throws ApiError
      */
-    public static postApiAuthAppRegister(
+    public static postApiUserAppRegister(
         requestBody: RegisterUserData,
     ): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'POST',
-            url: '/api/auth/app_register',
+            url: '/api/user/app_register',
             body: requestBody,
             mediaType: 'application/json',
         });
@@ -166,12 +166,12 @@ export class AuthService {
      * @returns any OK
      * @throws ApiError
      */
-    public static postApiAuthRequestPasswordReset(
+    public static postApiUserRequestPasswordReset(
         requestBody: RequestPasswordResetData,
     ): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'POST',
-            url: '/api/auth/request-password-reset',
+            url: '/api/user/request-password-reset',
             body: requestBody,
             mediaType: 'application/json',
         });
@@ -181,12 +181,12 @@ export class AuthService {
      * @returns any OK
      * @throws ApiError
      */
-    public static postApiAuthResetPassword(
+    public static postApiUserResetPassword(
         requestBody: ResetPasswordData,
     ): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'POST',
-            url: '/api/auth/reset-password',
+            url: '/api/user/reset-password',
             body: requestBody,
             mediaType: 'application/json',
         });
@@ -199,16 +199,6 @@ export class AuthService {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/auth/logout',
-        });
-    }
-    /**
-     * @returns any OK
-     * @throws ApiError
-     */
-    public static getApiAuthMe(): CancelablePromise<any> {
-        return __request(OpenAPI, {
-            method: 'GET',
-            url: '/api/auth/me',
         });
     }
 }

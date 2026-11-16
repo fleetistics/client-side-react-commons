@@ -9,4 +9,7 @@ import type { UserPatchDto } from '@/client-side.Commons/dataLayer/open-api';
 export type UserPatch = Pick<
   UserPatchDto,
   'DisplayName' | 'FullName' | 'Phone' | 'Email' | 'RemoveMediaIds' | 'InsertMedias'
->;
+> & {
+  // Not in the generated UserPatchDto until open-api is regenerated from a server that has it.
+  IsMfaEnabled?: boolean;
+};
