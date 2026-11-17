@@ -3,12 +3,12 @@ import { LocalSettings } from "@/client-side.Impl/services/LocalSettings";
 import { store } from "@/client-side.Commons/dataLayer/core/store";
 import type { MutationState, QueryState } from "@/client-side.Commons/dataLayer/core/api";
 import { apiSlice } from "@/client-side.Commons/dataLayer/core/apiSlice";
-import { UserSessionContext } from "@/client-side.Commons/userSession/userSessionContext";
-import { StaticAppSettings } from "@/client-side.Commons/lib/StaticAppSettings";
+
+import { GetApplicationId, GetPlatformId, StaticAppSettings } from "@/client-side.Commons/lib/StaticAppSettings";
 
 import { BaseUserSettingsProvider } from "@/client-side.Impl/config/base-user-settings-provider";
 
-
+   
 
 type ClientAppUserSettings = {
     Settings: any,
@@ -34,8 +34,8 @@ const appSettingsApi = apiSlice/*.enhanceEndpoints({ addTagTypes: ['RawClientApp
                             url: "users/me/settings",
                             method: 'GET',
                             params: {
-                                clientApplicationId: UserSessionContext.ClientAppId,
-                                clientDevicePlatformId: UserSessionContext.PlatformId
+                                clientApplicationId: GetApplicationId(),
+                                clientDevicePlatformId: GetPlatformId()
                             }
                         }),
                         LocalSettings.GetSettings(),
@@ -62,7 +62,7 @@ const appSettingsApi = apiSlice/*.enhanceEndpoints({ addTagTypes: ['RawClientApp
                         //console.log("getRawClientAppUserSettings SessionSettings", results[2]);
                         if (results[2]) {
                             let sessionSettings = JSON.parse(results[2]);
-                            if (sessionSettings && typeof sessionSettings === 'object' && sessionSettings.sessionId == UserSessionContext.SessionId) {
+                            if (sessionSettings && typeof sessionSettings === 'object' ) {
                                 res.SessionSettings = sessionSettings.settings || {};
                             }
                         }
@@ -146,7 +146,7 @@ const appSettingsApi = apiSlice/*.enhanceEndpoints({ addTagTypes: ['RawClientApp
                     else tmpSessionSettings[arg.name] = undefined;
 
                     await LocalSettings.SaveSessionSettings(JSON.stringify({
-                        sessionId: UserSessionContext.SessionId,
+                        sessionId: 1,
                         settings: tmpSessionSettings
                     }));
                     //console.log('saveSessionSettings arg.curSettings after save', JSON.stringify(tmpSessionSettings));
@@ -320,8 +320,8 @@ export function useSetAppSettings_onServer(): MutationState<{ name: string, valu
     return {
         trigger: data => mut[0]({
             ...data,
-            clientApplicationId: ((data.appLevel ?? ClientAppUserSettings_AppLevel.App) > ClientAppUserSettings_AppLevel.Common ? UserSessionContext.ClientAppId : undefined),
-            clientDevicePlatformId: ((data.appLevel ?? ClientAppUserSettings_AppLevel.App) > ClientAppUserSettings_AppLevel.App ? UserSessionContext.PlatformId : undefined)
+            clientApplicationId: ((data.appLevel ?? ClientAppUserSettings_AppLevel.App) > ClientAppUserSettings_AppLevel.Common ? GetApplicationId() : undefined),
+            clientDevicePlatformId: ((data.appLevel ?? ClientAppUserSettings_AppLevel.App) > ClientAppUserSettings_AppLevel.App ? GetPlatformId() : undefined)
         }), originalArgs: mut[1].originalArgs, isLoading: mut[1].isLoading, isError: mut[1].isError, isSuccess: mut[1].isSuccess, data: mut[1].data
     };
 }

@@ -1,6 +1,23 @@
 type SettingsListener = (settings: Record<string, any>) => void;
 type PathListener = (value: any) => void;
 
+var mApplicationId:number = -1
+var mPlatformId:number = -1
+
+export function SetApplicationId(value: number) {
+    mApplicationId = value;
+}   
+export function SetPlatformId(value: number) {
+    mPlatformId = value;
+}
+export function GetApplicationId(): number {
+    return mApplicationId;
+}   
+export function GetPlatformId(): number {
+    return mPlatformId;
+}
+
+
 /**
  * Last-known-good mirror of the resolved app-settings object (see appSettingsApi's
  * getRawClientAppUserSettings), kept outside Redux so non-React code (e.g. services
