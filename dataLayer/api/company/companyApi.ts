@@ -3,7 +3,6 @@ import { APP_URLS } from '@/client-side.Impl/config/app-urls';
 import type {
   CompanyDto,
   CompanyUserManagementContextDto,
-  LatestUserSessionDto,
   PermissionRoleDto,
   User2CompanyDto,
   User2GroupDto,
@@ -191,12 +190,6 @@ export const companyApi = apiSlice.injectEndpoints({
       query: () => APP_URLS.BASE_COMPANY_ADMIN_URL + '/user2company',
     }),
 
-    // GET /api/company-admin/latest-user-sessions - one session per user: the latest active one, or the
-    // latest of any status when the user has no active session. Users without sessions are omitted.
-    getLatestUserSessions: builder.query<LatestUserSessionDto[], void>({
-      query: () => APP_URLS.BASE_COMPANY_ADMIN_URL + '/latest-user-sessions',
-    }),
-
     // GET /api/company-admin/permission-roles - system-wide roles (no CompanyId) plus the company's own.
     getPermissionRoles: builder.query<PermissionRoleDto[], void>({
       query: () => APP_URLS.BASE_COMPANY_ADMIN_URL + '/permission-roles',
@@ -240,8 +233,6 @@ export const {
   useLazyGetNotActiveCompanyRelatedUsersQuery,
   useGetUser2CompanyQuery,
   useLazyGetUser2CompanyQuery,
-  useGetLatestUserSessionsQuery,
-  useLazyGetLatestUserSessionsQuery,
   useGetPermissionRolesQuery,
   useLazyGetPermissionRolesQuery,
   useGetUserGroupsQuery,
@@ -284,8 +275,6 @@ export const useGetNotActiveCompanyRelatedUsers = useGetNotActiveCompanyRelatedU
 /** Alias for the RTK-generated `useGetUser2CompanyQuery`. */
 export const useGetUser2Company = useGetUser2CompanyQuery;
 
-/** Alias for the RTK-generated `useGetLatestUserSessionsQuery`. */
-export const useGetLatestUserSessions = useGetLatestUserSessionsQuery;
 
 /** Alias for the RTK-generated `useGetPermissionRolesQuery`. */
 export const useGetPermissionRoles = useGetPermissionRolesQuery;

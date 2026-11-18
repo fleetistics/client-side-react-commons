@@ -4,7 +4,8 @@ import { store } from "@/client-side.Commons/dataLayer/core/store";
 import type { MutationState, QueryState } from "@/client-side.Commons/dataLayer/core/api";
 import { apiSlice } from "@/client-side.Commons/dataLayer/core/apiSlice";
 
-import { GetApplicationId, GetPlatformId, StaticAppSettings } from "@/client-side.Commons/lib/StaticAppSettings";
+import { StaticAppSettings } from "@/client-side.Commons/lib/StaticAppSettings";
+import { ClientSideInfoProvider } from "@/client-side.Commons/userSession/ClientSideInfoProvider";
 
 import { BaseUserSettingsProvider } from "@/client-side.Impl/config/base-user-settings-provider";
 
@@ -34,8 +35,8 @@ const appSettingsApi = apiSlice/*.enhanceEndpoints({ addTagTypes: ['RawClientApp
                             url: "users/me/settings",
                             method: 'GET',
                             params: {
-                                clientApplicationId: GetApplicationId(),
-                                clientDevicePlatformId: GetPlatformId()
+                                clientApplicationId: ClientSideInfoProvider.GetInstance().ApplicationId,
+                                clientDevicePlatformId: ClientSideInfoProvider.GetInstance().PlatformId
                             }
                         }),
                         LocalSettings.GetSettings(),
@@ -320,8 +321,8 @@ export function useSetAppSettings_onServer(): MutationState<{ name: string, valu
     return {
         trigger: data => mut[0]({
             ...data,
-            clientApplicationId: ((data.appLevel ?? ClientAppUserSettings_AppLevel.App) > ClientAppUserSettings_AppLevel.Common ? GetApplicationId() : undefined),
-            clientDevicePlatformId: ((data.appLevel ?? ClientAppUserSettings_AppLevel.App) > ClientAppUserSettings_AppLevel.App ? GetPlatformId() : undefined)
+            clientApplicationId: ((data.appLevel ?? ClientAppUserSettings_AppLevel.App) > ClientAppUserSettings_AppLevel.Common ? ClientSideInfoProvider.GetInstance().ApplicationId : undefined),
+            clientDevicePlatformId: ((data.appLevel ?? ClientAppUserSettings_AppLevel.App) > ClientAppUserSettings_AppLevel.App ? ClientSideInfoProvider.GetInstance().PlatformId : undefined)
         }), originalArgs: mut[1].originalArgs, isLoading: mut[1].isLoading, isError: mut[1].isError, isSuccess: mut[1].isSuccess, data: mut[1].data
     };
 }

@@ -4,12 +4,15 @@
 /* eslint-disable */
 import type { CompanyDto } from '../models/CompanyDto';
 import type { CompanyUserManagementContextDto } from '../models/CompanyUserManagementContextDto';
-import type { LatestUserSessionDto } from '../models/LatestUserSessionDto';
 import type { PermissionRoleDto } from '../models/PermissionRoleDto';
 import type { User2CompanyDto } from '../models/User2CompanyDto';
+import type { User2CompanyPatchDto } from '../models/User2CompanyPatchDto';
 import type { User2GroupDto } from '../models/User2GroupDto';
+import type { User2GroupPatchDto } from '../models/User2GroupPatchDto';
 import type { UserDto } from '../models/UserDto';
+import type { UserGroupCreateDto } from '../models/UserGroupCreateDto';
 import type { UserGroupDto } from '../models/UserGroupDto';
+import type { UserGroupPatchDto } from '../models/UserGroupPatchDto';
 import type { UserJoinInvitationDto } from '../models/UserJoinInvitationDto';
 import type { UserJoinRequestDto } from '../models/UserJoinRequestDto';
 import type { CancelablePromise } from '../core/CancelablePromise';
@@ -83,15 +86,53 @@ export class CompanyAdminService {
         });
     }
     /**
-     * @returns LatestUserSessionDto OK
+     * @param userId
+     * @param requestBody
+     * @returns void
      * @throws ApiError
      */
-    public static getApiCompanyAdminLatestUserSessions(): CancelablePromise<Array<LatestUserSessionDto>> {
+    public static patchApiCompanyAdminUser2Company(
+        userId: number,
+        requestBody: User2CompanyPatchDto,
+    ): CancelablePromise<void> {
         return __request(OpenAPI, {
-            method: 'GET',
-            url: '/api/company-admin/latest-user-sessions',
+            method: 'PATCH',
+            url: '/api/company-admin/user2company/{userId}',
+            path: {
+                'userId': userId,
+            },
+            body: requestBody,
+            mediaType: 'application/json',
             errors: {
+                400: `Bad Request`,
                 403: `Forbidden`,
+                404: `Not Found`,
+                409: `Conflict`,
+            },
+        });
+    }
+    /**
+     * @param userId
+     * @param requestBody
+     * @returns void
+     * @throws ApiError
+     */
+    public static patchApiCompanyAdminUser2Group(
+        userId: number,
+        requestBody: User2GroupPatchDto,
+    ): CancelablePromise<void> {
+        return __request(OpenAPI, {
+            method: 'PATCH',
+            url: '/api/company-admin/user2group/{userId}',
+            path: {
+                'userId': userId,
+            },
+            body: requestBody,
+            mediaType: 'application/json',
+            errors: {
+                400: `Bad Request`,
+                403: `Forbidden`,
+                404: `Not Found`,
             },
         });
     }
@@ -118,6 +159,72 @@ export class CompanyAdminService {
             url: '/api/company-admin/user-groups',
             errors: {
                 403: `Forbidden`,
+            },
+        });
+    }
+    /**
+     * @param requestBody
+     * @returns UserGroupDto Created
+     * @throws ApiError
+     */
+    public static postApiCompanyAdminUserGroups(
+        requestBody: UserGroupCreateDto,
+    ): CancelablePromise<UserGroupDto> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/company-admin/user-groups',
+            body: requestBody,
+            mediaType: 'application/json',
+            errors: {
+                400: `Bad Request`,
+                403: `Forbidden`,
+                409: `Conflict`,
+            },
+        });
+    }
+    /**
+     * @param groupId
+     * @param requestBody
+     * @returns void
+     * @throws ApiError
+     */
+    public static patchApiCompanyAdminUserGroups(
+        groupId: number,
+        requestBody: UserGroupPatchDto,
+    ): CancelablePromise<void> {
+        return __request(OpenAPI, {
+            method: 'PATCH',
+            url: '/api/company-admin/user-groups/{groupId}',
+            path: {
+                'groupId': groupId,
+            },
+            body: requestBody,
+            mediaType: 'application/json',
+            errors: {
+                400: `Bad Request`,
+                403: `Forbidden`,
+                404: `Not Found`,
+                409: `Conflict`,
+            },
+        });
+    }
+    /**
+     * @param groupId
+     * @returns void
+     * @throws ApiError
+     */
+    public static deleteApiCompanyAdminUserGroups(
+        groupId: number,
+    ): CancelablePromise<void> {
+        return __request(OpenAPI, {
+            method: 'DELETE',
+            url: '/api/company-admin/user-groups/{groupId}',
+            path: {
+                'groupId': groupId,
+            },
+            errors: {
+                403: `Forbidden`,
+                404: `Not Found`,
             },
         });
     }

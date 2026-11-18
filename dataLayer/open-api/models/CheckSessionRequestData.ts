@@ -3,10 +3,10 @@
 /* tslint:disable */
 /* eslint-disable */
 import type { ClientSideInfo } from './ClientSideInfo';
-export type LoginData = {
-    UserName: string;
-    Password: string;
-    RememberMe?: boolean;
+export type CheckSessionRequestData = {
+    SessionSign?: string;
+    RotationCounter?: number;
+    SessionKey?: string;
     ClientSideInfo?: ClientSideInfo;
 };
 

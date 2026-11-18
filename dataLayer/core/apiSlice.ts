@@ -9,9 +9,19 @@ import {
 } from '@reduxjs/toolkit/query/react';
 
 import { newTraceContext, recordTrace } from './traceContext';
-import { USER_SESSION_CONSTS } from '@/client-side.Impl/config/userSession-consts';
+import { USER_ACCOUNT_CONSTS, USER_SESSION_CONSTS } from '@/client-side.Impl/config/userSession-consts';
 import { APP_CONFIG } from '@/client-side.Impl/config/app-config';
-import { ClientSideInfoProvider } from '@/client-side.Impl/userSession/ClientSideInfoProvider';
+
+// Session endpoints (userSessionApi + token refresh) authenticate with the session
+// cookie / session key, never the bearer token, so no Authorization header is sent.
+const NO_BEARER_URIS: string[] = [
+  USER_SESSION_CONSTS.CHECK_SESSION_URL,
+  USER_SESSION_CONSTS.REFRESH_TOKEN_URL,
+  USER_ACCOUNT_CONSTS.LOGIN_URL,
+  USER_ACCOUNT_CONSTS.RESET_PASSWORD_URL,
+  USER_ACCOUNT_CONSTS.REQUEST_PASSWORD_RESET_URL
+  
+];
 
 // A 401 from the session check is a normal "not signed in" answer, not an expired
 // access token, so do not attempt a refresh or emit an auth-lost notification.
@@ -28,18 +38,18 @@ const SESSION_ESTABLISHING_URIS: string[] = [
  * the httpOnly refresh cookie lets USER_SESSION_CONSTS.REFRESH_TOKEN_URL mint a new one on the first 401.
  */
 export class AuthToken {
-  static jwtToken: string | null = null;
+  private static jwtToken: string | undefined = undefined;
 
-  static get(): string | null {
+  public static get(): string | undefined {
     return AuthToken.jwtToken;
   }
 
-  static set(token: string | null) {
+  public static set(token: string | undefined) {
     AuthToken.jwtToken = token;
   }
 
-  static clear() {
-    AuthToken.jwtToken = null;
+  public static clear() {
+    AuthToken.jwtToken = undefined;
   }
 }
 
@@ -64,14 +74,15 @@ let rawBaseQuery:
 
 // Built lazily so tests can stub the environment before the first request reads
 // AppConfig.BASE_URL.
-const getRawBaseQuery = () => {
+export const getRawBaseQuery = () => {
   rawBaseQuery ??= fetchBaseQuery({
     baseUrl: APP_CONFIG.BASE_API_URL,
-    credentials: 'include',
+    // Cookies are off by default; only session requests (see userSessionApi) opt in.
+    credentials: 'omit',
     timeout: 30000,
-    prepareHeaders: (headers, { endpoint }) => {
-      if (AuthToken.jwtToken) {
-        headers.set('Authorization', `Bearer ${AuthToken.jwtToken}`);
+    prepareHeaders: (headers, { endpoint, arg }) => {
+      if (AuthToken.get() && !NO_BEARER_URIS.includes(urlOf(arg))) {
+        headers.set('Authorization', `Bearer ${AuthToken.get()}`);
       }
       // W3C Trace Context: the server continues this trace, making the browser the
       // trace root. The id is also logged to the flight recorder for correlation.
@@ -91,57 +102,14 @@ export type RefreshApi = Parameters<
 >[1];
 
 /**
- * Minimal BaseQueryApi stand-in for callers outside RTK Query (e.g. the native media
- * upload path) that still need to drive refreshAccessToken()'s single-flight latch.
- * Sharing that latch matters: it's what stops a query and an upload racing to refresh
- * at the same moment from each invalidating the other's refresh cookie (see above).
+ * Mints a new access token (stores it in AuthToken) and reports whether it succeeded.
+ * The implementation lives in userSessionApi, which registers it here on load; apiSlice
+ * cannot import it because userSessionApi imports apiSlice.
  */
-export const createStandaloneRefreshApi = (endpoint: string): RefreshApi => ({
-  signal: new AbortController().signal,
-  abort: () => {},
-  dispatch: (() => {}) as RefreshApi['dispatch'],
-  getState: () => undefined,
-  extra: undefined,
-  endpoint,
-  type: 'mutation',
-});
-
-const doRefresh = async (api: RefreshApi, extraOptions: {}): Promise<boolean> => {
-  const result = await getRawBaseQuery()(
-    {
-      url: USER_SESSION_CONSTS.REFRESH_TOKEN_URL,
-      method: 'POST',
-      body: await ClientSideInfoProvider.GetInstance().GetInfo(),
-    },
-    api,
-    extraOptions
-  );
-
-  if (!result.data || typeof result.data !== 'string') {
-    AuthToken.clear();
-    return false;
-  }
-
-  AuthToken.set(result.data);
-  return true;
-};
-
-/**
- * Single-flight latch. Without it, N queries in flight when the token expires would
- * each fire their own refresh — the server invalidates the old refresh cookie on the
- * first one, so the rest fail and log the user out spuriously.
- */
-let refreshInFlight: Promise<boolean> | null = null;
-
-export const refreshAccessToken = (api: RefreshApi, extraOptions: {}): Promise<boolean> => {
-  if (!refreshInFlight) {
-    refreshInFlight = doRefresh(api, extraOptions);
-    // Release the latch once settled so a later expiry can refresh again.
-    void refreshInFlight.finally(() => {
-      refreshInFlight = null;
-    });
-  }
-  return refreshInFlight;
+export type SessionRefresher = (api: RefreshApi, extraOptions: {}) => Promise<boolean>;
+let sessionRefresher: SessionRefresher | null = null;
+export const setSessionRefresher = (refresher: SessionRefresher | null) => {
+  sessionRefresher = refresher;
 };
 
 export const baseQueryWithReauth: BaseQueryFn<
@@ -168,7 +136,7 @@ export const baseQueryWithReauth: BaseQueryFn<
     return result;
   }
 
-  const refreshed = await refreshAccessToken(api, extraOptions);
+  const refreshed = sessionRefresher ? await sessionRefresher(api, extraOptions) : false;
   if (!refreshed) {
     notifyAuthLost();
     return result;

@@ -3,13 +3,11 @@
 /* tslint:disable */
 /* eslint-disable */
 export type ClientSideInfo = {
-    ClientApplicationId?: number;
-    AppUID?: string;
-    AppVersion?: string;
-    DeviceUID?: string;
-    CodeVersion?: string;
-    PlatformName?: string;
+    AppId?: number;
     PlatformId?: number;
+    AppVersion?: string;
+    AppHash?: string;
+    PlatformDetails?: string;
     FCM_FID?: string;
 };
 

@@ -5,6 +5,7 @@
 import type { EmailTestAcceptedDto } from '../models/EmailTestAcceptedDto';
 import type { EmailTestRequestDto } from '../models/EmailTestRequestDto';
 import type { EmailTestStatusDto } from '../models/EmailTestStatusDto';
+import type { ResetPasswordEmailTestRequestDto } from '../models/ResetPasswordEmailTestRequestDto';
 import type { CancelablePromise } from '../core/CancelablePromise';
 import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
@@ -26,6 +27,26 @@ export class EmailTestService {
                 400: `Bad Request`,
                 404: `Not Found`,
                 409: `Conflict`,
+            },
+        });
+    }
+    /**
+     * @param requestBody
+     * @returns EmailTestAcceptedDto Accepted
+     * @throws ApiError
+     */
+    public static postApiTestEmailResetPassword(
+        requestBody: ResetPasswordEmailTestRequestDto,
+    ): CancelablePromise<EmailTestAcceptedDto> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/test/email/reset-password',
+            body: requestBody,
+            mediaType: 'application/json',
+            errors: {
+                400: `Bad Request`,
+                409: `Conflict`,
+                422: `Unprocessable Entity`,
             },
         });
     }

@@ -7,9 +7,7 @@ import { InitError } from '@/client-side.Impl/bootstrap/init-error';
 import { InitWaiter } from '@/client-side.Impl/bootstrap/init-waiter';
 import { AssignPasswordUI } from '@/client-side.Impl/userSession/assign-password';
 import { NoAuthUI } from '@/client-side.Impl/userSession/noauth-ui';
-import { UserSession_ValidSession } from './userSession_ValidSession';
 import { useCheckSessionQuery } from './userSessionApi';
-import { APP_CONFIG } from '@/client-side.Impl/config/app-config';
 import { UserSessionContext } from './userSessionContext';
 
 export function UserSessionProvider(props: {
@@ -44,36 +42,14 @@ export function UserSessionProvider(props: {
   const hasSession = props.mockSession != null || (!isLoading && !isError && data !== undefined);
   useEffect(() => {
     if (hasSession) void getOutbox(store).startSending();
-    if (data) {
-      UserSessionContext.AssignValues(
-        APP_CONFIG.ClientAppId,
-        data.clientInfo.PlatformId,
-        data.serverSessionInfo.SessionId,
-        data.serverSessionInfo.UserId
-      );
-    }
   }, [hasSession, store]);
 
   if (passwordResetKey !== undefined) {
     return <AssignPasswordUI passwordResetKey={passwordResetKey} />;
   }
   if (props.mockSession) {
-    UserSessionContext.AssignValues(
-      APP_CONFIG.ClientAppId,
-      props.mockSession.PlatformId,
-      props.mockSession.SessionId,
-      props.mockSession.UserId
-    );
-    return (
-      <UserSession_ValidSession
-        UserId={props.mockSession.UserId}
-        SessionId={props.mockSession.SessionId}
-        ClientAppId={UserSessionContext.ClientAppId}
-        PlatformId={props.mockSession.PlatformId}
-      >
-        {props.children}
-      </UserSession_ValidSession>
-    );
+    UserSessionContext.AssignUserId(props.mockSession.UserId);
+    return props.children;
   }
   // isLoading is only true for the very first fetch; a refetch after a 401 (e.g. right after
   // login) has no data yet and isError already cleared, so isFetching covers that gap.
@@ -96,14 +72,5 @@ export function UserSessionProvider(props: {
     return <InitError errorMsg="Session check failed: no data returned" retryFunc={refetch} />;
   }
 
-  return (
-    <UserSession_ValidSession
-      UserId={data.serverSessionInfo.UserId}
-      SessionId={data.serverSessionInfo.SessionId}
-      ClientAppId={UserSessionContext.ClientAppId}
-      PlatformId={data.clientInfo.PlatformId}
-    >
-      {props.children}
-    </UserSession_ValidSession>
-  );
+  return props.children;
 }

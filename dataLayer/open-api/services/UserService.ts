@@ -59,6 +59,7 @@ export class UserService {
             body: requestBody,
             mediaType: 'application/json',
             errors: {
+                403: `Forbidden`,
                 404: `Not Found`,
             },
         });

@@ -2,7 +2,7 @@ import type { QueryReturnValue } from '@reduxjs/toolkit/query';
 import type { FetchBaseQueryError, FetchBaseQueryMeta } from '@reduxjs/toolkit/query/react';
 import { apiSlice } from '@/client-side.Commons/dataLayer/core/apiSlice';
 import { USER_ACCOUNT_CONSTS } from '@/client-side.Impl/config/userSession-consts';
-import { ClientSideInfoProvider } from '@/client-side.Impl/userSession/ClientSideInfoProvider';
+import { ClientSideInfoProvider } from '@/client-side.Commons/userSession/ClientSideInfoProvider';
 
 import type { RegisterUser, RequestPasswordReset, ResetPassword } from '../../model/auth/accountDto';
 
@@ -16,7 +16,9 @@ export const accountApi = apiSlice.injectEndpoints({
     // Callers pass only the form values; the client info is gathered here at request time.
     registerUser: builder.mutation<void, Omit<RegisterUser, 'ClientSideInfo'>>({
       queryFn: async (user, _api, _extraOptions, baseQuery) => {
-        const clientInfo = await ClientSideInfoProvider.GetInstance().GetInfo();
+        const provider = ClientSideInfoProvider.GetInstance();
+        await provider.CollectInfo();
+        const clientInfo = provider.Info;
         const body: RegisterUser = { ...user, ClientSideInfo: clientInfo };
         const result = await baseQuery({ url: USER_ACCOUNT_CONSTS.REGISTER_URL, method: 'POST', body });
         return result as QueryReturnValue<void, FetchBaseQueryError, FetchBaseQueryMeta>;
