@@ -1,4 +1,4 @@
-import { UserSessionInfoDto } from "../dataLayer/open-api";
+import type { UserSessionInfoDto } from "../dataLayer/open-api";
 
 export class UserSessionContext {
     public static AssignUserId( userId: number) {
