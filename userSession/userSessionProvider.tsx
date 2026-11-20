@@ -25,7 +25,9 @@ export function UserSessionProvider(props: {
   const { data, isLoading, isFetching, isError, error, refetch } = useCheckSessionQuery(undefined, {
     skip: props.mockSession != null || passwordResetKey !== undefined,
   });
-  console.log(`UserSessionProvider::useCheckSessionQuery isLoading {isLoading} isError {isError}  - Data/error:`, data, error);
+  console.log(
+    `${new Date().toISOString()} UserSessionProvider::render isLoading=${isLoading} isFetching=${isFetching} isError=${isError} hasData=${data !== undefined} status=${getErrorStatus(error)}`
+  );
   // When apiSlice exhausts its refresh path, re-check the session so the UI drops
   // back to the login screen instead of sitting on stale, unauthorized data.
   useEffect(() => {

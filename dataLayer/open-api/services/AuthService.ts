@@ -58,6 +58,26 @@ export class AuthService {
     }
     /**
      * @param requestBody
+     * @returns LoginResponseData OK
+     * @throws ApiError
+     */
+    public static postApiAuthAppAutoLogin(
+        requestBody: LoginRequestData,
+    ): CancelablePromise<LoginResponseData> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/auth/app_auto_login',
+            body: requestBody,
+            mediaType: 'application/json',
+            errors: {
+                401: `Unauthorized`,
+                409: `Conflict`,
+                429: `Too Many Requests`,
+            },
+        });
+    }
+    /**
+     * @param requestBody
      * @returns CheckSessionResponseData OK
      * @throws ApiError
      */
@@ -210,12 +230,12 @@ export class AuthService {
      * @returns void
      * @throws ApiError
      */
-    public static postApiUserRequestPasswordReset(
+    public static postApiAuthRequestPasswordReset(
         requestBody: RequestPasswordResetData,
     ): CancelablePromise<void> {
         return __request(OpenAPI, {
             method: 'POST',
-            url: '/api/user/request-password-reset',
+            url: '/api/auth/request-password-reset',
             body: requestBody,
             mediaType: 'application/json',
         });
@@ -225,12 +245,12 @@ export class AuthService {
      * @returns void
      * @throws ApiError
      */
-    public static postApiUserResetPassword(
+    public static postApiAuthResetPassword(
         requestBody: ResetPasswordData,
     ): CancelablePromise<void> {
         return __request(OpenAPI, {
             method: 'POST',
-            url: '/api/user/reset-password',
+            url: '/api/auth/reset-password',
             body: requestBody,
             mediaType: 'application/json',
             errors: {

@@ -72,6 +72,41 @@ export const getFieldErrors = (error: unknown): Record<string, string[]> => {
   return result;
 };
 
+/**
+ * User-readable reason for a no-response failure, chosen from the original error text that
+ * fetch rejected with (RTK puts it in `error.error`, e.g. "TypeError: Network request failed",
+ * "AbortError: Aborted", "javax.net.ssl.SSLHandshakeException ..."). React Native reports
+ * most network failures with the same generic text, so the specific branches only fire when
+ * the platform actually names the cause; the last branch is the honest generic answer.
+ */
+const describeNoResponse = (status: unknown, original: string | undefined): string => {
+  const text = (original ?? '').toLowerCase();
+
+  // Our own timeout: RTK labels it TIMEOUT_ERROR, React Native surfaces it as an abort.
+  if (status === 'TIMEOUT_ERROR' || /abort|timeout|timed out/.test(text)) {
+    return 'The server did not respond in time. Check your connection and try again.';
+  }
+  if (/ssl|tls|certificate|handshake|trust anchor|cert_/.test(text)) {
+    return "A secure connection to the server could not be established (certificate problem).";
+  }
+  if (/cleartext/.test(text)) {
+    return 'The device blocked an insecure (http) connection to the server.';
+  }
+  if (/refused|econnrefused/.test(text)) {
+    return 'The server is not accepting connections. It may be down or restarting.';
+  }
+  if (/unable to resolve host|enotfound|dns|unknown host|name not resolved/.test(text)) {
+    return 'The server address could not be found. Check your connection and the server address.';
+  }
+  if (/reset|broken pipe|connection closed|econnreset|eof/.test(text)) {
+    return 'The connection to the server was interrupted. Please try again.';
+  }
+  if (/offline|no internet|network is unreachable|enetunreach/.test(text)) {
+    return 'No network connection. Check your internet connection and try again.';
+  }
+  return 'Cannot reach the server. Check your connection and try again.';
+};
+
 export const getErrorMessage = (error: unknown, fallback = 'Unknown error'): string => {
   if (!isHttpErrorLike(error)) {
     // SerializedError (e.g. from a rejected mutation thunk) or a plain Error.
@@ -80,7 +115,11 @@ export const getErrorMessage = (error: unknown, fallback = 'Unknown error'): str
   }
 
   if (getErrorCategory(error) === 'FETCH_ERROR') {
-    return 'Network timeout';
+    return describeNoResponse(error.status, error.error);
+  }
+
+  if (error.status === 'PARSING_ERROR') {
+    return 'The server sent a response the app could not read. Please try again.';
   }
 
   // 401 and SERVER_ERROR/OTHER_ERROR all read whatever message the server sent.
@@ -102,6 +141,12 @@ export const getErrorMessage = (error: unknown, fallback = 'Unknown error'): str
   }
   if (typeof data?.title === 'string' && data.title) {
     return data.title;
+  }
+
+  // The server answered but sent no readable message: a gateway / availability status is
+  // more useful to the user than the caller's generic fallback.
+  if (error.status === 502 || error.status === 503 || error.status === 504) {
+    return 'The server is temporarily unavailable. Please try again in a moment.';
   }
 
   return fallback;

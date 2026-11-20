@@ -19,6 +19,11 @@ import type { SessionKeyStorage } from './sessionKeyStore';
 
 var mSessionKeyStore: SessionKeyStorage|null = null;
 
+/** Apps register their platform-specific key store once at startup, before the first session check. */
+export const SetSessionKeyStore = (store: SessionKeyStorage | null): void => {
+  mSessionKeyStore = store;
+};
+
 /** What checkSession returns: the server's user session info, with the user id guaranteed present. */
 export type CheckedUserSessionInfo = UserSessionInfoDto & Concrete<UserSessionInfoDto, 'UserId'>;
 
@@ -66,7 +71,7 @@ const doRefresh = async (api: RefreshApi, extraOptions: {}): Promise<boolean> =>
   const response = result.data as RefreshKeyResponseData;
   AuthToken.set(response.AccessToken);
   if (mSessionKeyStore != null) {
-    if (response.SessionSign && response.RotationCounter) await mSessionKeyStore.WriteRotation( response.SessionSign,response.RotationCounter );
+    if (response.SessionSign && response.RotationCounter != undefined) await mSessionKeyStore.WriteRotation( response.SessionSign,response.RotationCounter );
     else await mSessionKeyStore.Clear();
   }
   return true;
@@ -106,6 +111,12 @@ export const userSessionApi = apiSlice.injectEndpoints({
       // `query` must return synchronously, so this goes through `queryFn` instead,
       // delegating to the shared `baseQuery` for auth/retry/traceparent handling.
       queryFn: async (_arg, _api, _extraOptions, baseQuery) => {
+        // The stored session could not be read (e.g. the biometric unlock was cancelled or failed).
+        // Answer like the server would for "not signed in": the provider turns a 401 into the
+        // sign-in screen, and the next check retries the load.
+        if (mSessionKeyStore != null && !(await mSessionKeyStore.CheckSessionDataLoaded())) {
+          return { error: { status: 401, data: { message: 'Stored session is not available' } } };
+        }
         await ClientSideInfoProvider.CheckInfoCollected ();
         const body = { ClientSideInfo: ClientSideInfoProvider.Info } as CheckSessionRequestData;
         if (mSessionKeyStore != null) {
@@ -121,13 +132,21 @@ export const userSessionApi = apiSlice.injectEndpoints({
           credentials: USER_SESSION_CONSTS.SESSION_CREDENTIALS_MODE,
         });
         if (result.error) {
+          // The server rejected the stored session: drop it so the next check doesn't resend it.
+          if (result.error.status === 401 && mSessionKeyStore != null) {
+            try {
+              await mSessionKeyStore.Clear();
+            } catch (error) {
+              console.warn('[userSessionApi] clearing the session key after 401 failed', error);
+            }
+          }
           return { error: result.error, meta: result.meta };
         }
         const response = result.data as CheckSessionResponseData;
-       
+
         AuthToken.set(response.AccessToken);
         if (mSessionKeyStore != null) {
-          if (response.SessionSign && response.RotationCounter) await mSessionKeyStore.WriteRotation( response.SessionSign,response.RotationCounter );
+          if (response.SessionSign && response.RotationCounter != undefined) await mSessionKeyStore.WriteRotation( response.SessionSign,response.RotationCounter );
           else await mSessionKeyStore.Clear();
         }
         const userSessionInfo = response.UserSessionInfo;
@@ -139,7 +158,8 @@ export const userSessionApi = apiSlice.injectEndpoints({
         }
         // Assigned here, before the result reaches the provider, so it is in place when the
         // children first render and on every refetch.
-        UserSessionContext.AssignUserId(userSessionInfo.UserId);
+        UserSessionContext.AssignUserSessionInfo(userSessionInfo);
+        //UserSessionContext.AssignUserId(userSessionInfo.UserId);
         return { data: userSessionInfo as CheckedUserSessionInfo, meta: result.meta };
       },
     }),
@@ -147,10 +167,10 @@ export const userSessionApi = apiSlice.injectEndpoints({
     // Callers pass only the credentials; the client info is gathered here at request time.
     login: builder.mutation<LoginResponseData, Omit<LoginRequestData, 'ClientSideInfo'>>({
       queryFn: async (credentials, _api, _extraOptions, baseQuery) => {
-        await ClientSideInfoProvider.CheckInfoCollected ();
+        await ClientSideInfoProvider.CheckInfoCollected();
         const body: LoginRequestData = { ...credentials, ClientSideInfo: ClientSideInfoProvider.Info };
         const result = await baseQuery({
-          url: USER_ACCOUNT_CONSTS.LOGIN_URL,
+          url: USER_SESSION_CONSTS.LOGIN_URL,
           method: 'POST',
           body,
           credentials: USER_SESSION_CONSTS.SESSION_CREDENTIALS_MODE,
@@ -161,7 +181,7 @@ export const userSessionApi = apiSlice.injectEndpoints({
 
     logout: builder.mutation<void, void>({
       query: () => ({
-        url: USER_ACCOUNT_CONSTS.LOGOUT_URL,
+        url: USER_SESSION_CONSTS.LOGOUT_URL,
         method: 'POST',
         credentials: USER_SESSION_CONSTS.SESSION_CREDENTIALS_MODE,
       }),

@@ -4,5 +4,6 @@
 /* eslint-disable */
 export type UserSessionInfoDto = {
     UserId?: number;
+    CompanyId?: number;
 };
 

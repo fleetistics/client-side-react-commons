@@ -17,7 +17,7 @@ import { APP_CONFIG } from '@/client-side.Impl/config/app-config';
 const NO_BEARER_URIS: string[] = [
   USER_SESSION_CONSTS.CHECK_SESSION_URL,
   USER_SESSION_CONSTS.REFRESH_TOKEN_URL,
-  USER_ACCOUNT_CONSTS.LOGIN_URL,
+  USER_SESSION_CONSTS.LOGIN_URL,
   USER_ACCOUNT_CONSTS.RESET_PASSWORD_URL,
   USER_ACCOUNT_CONSTS.REQUEST_PASSWORD_RESET_URL
   
@@ -74,12 +74,39 @@ let rawBaseQuery:
 
 // Built lazily so tests can stub the environment before the first request reads
 // AppConfig.BASE_URL.
+// Diagnostic wrapper: logs every network call's start, duration and outcome. A rejected
+// fetch ("FAILED") is a network-level error (refused / DNS / TLS / offline); an abort that
+// lands at ~REQUEST_TIMEOUT_MS is the base query's own timeout.
+const REQUEST_TIMEOUT_MS = 10000;
+let fetchSeq = 0;
+const loggingFetch: typeof fetch = async (input, init) => {
+  const id = ++fetchSeq;
+  const url = typeof input === 'string' ? input : (input as Request).url ?? String(input);
+  const method = init?.method ?? (typeof input === 'object' ? (input as Request).method : undefined) ?? 'GET';
+  const t0 = Date.now();
+  console.log(`[net #${id}] -> ${method} ${url}`);
+  try {
+    const res = await fetch(input, init);
+    console.log(`[net #${id}] <- ${res.status} ${url} in ${Date.now() - t0}ms`);
+    return res;
+  } catch (e) {
+    const err = e as { name?: string; message?: string };
+    const ms = Date.now() - t0;
+    console.warn(
+      `[net #${id}] !! FAILED ${url} after ${ms}ms${ms >= REQUEST_TIMEOUT_MS - 500 ? ' (looks like TIMEOUT)' : ''}` +
+        ` - ${err?.name}: ${err?.message}`
+    );
+    throw e;
+  }
+};
+
 export const getRawBaseQuery = () => {
   rawBaseQuery ??= fetchBaseQuery({
     baseUrl: APP_CONFIG.BASE_API_URL,
     // Cookies are off by default; only session requests (see userSessionApi) opt in.
     credentials: 'omit',
-    timeout: 30000,
+    timeout: REQUEST_TIMEOUT_MS,
+    fetchFn: loggingFetch,
     prepareHeaders: (headers, { endpoint, arg }) => {
       if (AuthToken.get() && !NO_BEARER_URIS.includes(urlOf(arg))) {
         headers.set('Authorization', `Bearer ${AuthToken.get()}`);
@@ -163,9 +190,10 @@ const baseQueryWithRetry: typeof baseQueryWithReauth = retry(baseQueryWithReauth
   backoff: () => Promise.resolve(),
   retryCondition: (error, args, { attempt }) => {
     const status = (error as FetchBaseQueryError).status;
+    const detail = (error as { error?: string }).error;
     const willRetry = attempt <= 2 && (typeof status !== 'number' || status >= 500);
     console.warn(
-      `[apiSlice] request to ${urlOf(args)} failed (status: ${status}), attempt ${attempt}` +
+      `[apiSlice] ${new Date().toISOString()} request to ${urlOf(args)} failed (status: ${status}${detail ? `, ${detail}` : ''}), attempt ${attempt}` +
         (willRetry ? ' — retrying...' : ' — giving up.')
     );
     return willRetry;
