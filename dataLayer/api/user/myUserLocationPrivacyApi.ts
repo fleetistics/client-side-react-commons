@@ -2,11 +2,14 @@ import { useCallback, useState } from 'react';
 import { apiSlice } from '@/client-side.Commons/dataLayer/core/apiSlice';
 import { registerOfflineMutation } from '@/client-side.Commons/dataLayer/outbox/offlineMutation';
 import { useOfflineMutation, useOutboxHydrated } from '@/client-side.Commons/dataLayer/outbox/outboxHooks';
-import type { IPrivateModeChangeListener } from '@/client-side.Commons/lib/private-mode-change-listener';
 
 import type { UserLocationPrivacyDto, UserLocationPrivacyPatch } from '../../model/user/userLocationPrivacyDto';
 import { APP_CONFIG } from '@/client-side.Impl/config/app-config';
 const LOCATION_PRIVACY_URL = APP_CONFIG.BASE_API_URL + 'users/me/location-privacy';
+
+export interface IPrivateModeChangeListener {
+    SetPrivateMode(isPrivate: boolean): void
+}
 
 export const myUserLocationPrivacyApi = apiSlice.injectEndpoints({
   endpoints: (builder) => ({

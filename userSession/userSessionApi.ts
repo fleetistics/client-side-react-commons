@@ -3,7 +3,7 @@ import type { FetchBaseQueryError, FetchBaseQueryMeta } from '@reduxjs/toolkit/q
 import {
   apiSlice,
   AuthToken,
-  getRawBaseQuery,
+  getRefreshBaseQuery,
   notifyAuthLost,
   setSessionRefresher,
   type RefreshApi,
@@ -16,6 +16,7 @@ import type { CheckSessionRequestData, CheckSessionResponseData, LoginRequestDat
 import type { Concrete } from '@/client-side.Commons/dataLayer/core/apiTypes';
 import { UserSessionContext } from './userSessionContext';
 import type { SessionKeyStorage } from './sessionKeyStore';
+import { LocationTokenContext } from './location-token-context';
 
 var mSessionKeyStore: SessionKeyStorage|null = null;
 
@@ -45,7 +46,8 @@ export const createStandaloneRefreshApi = (endpoint: string): RefreshApi => ({
 
 const doRefresh = async (api: RefreshApi, extraOptions: {}): Promise<boolean> => {
 
-  const result = await getRawBaseQuery()(
+  // Own base query: its fetch can be swapped for one that completes while the app is backgrounded.
+  const result = await getRefreshBaseQuery()(
     {
       url: USER_SESSION_CONSTS.REFRESH_TOKEN_URL,
       method: 'POST',
@@ -70,6 +72,7 @@ const doRefresh = async (api: RefreshApi, extraOptions: {}): Promise<boolean> =>
   
   const response = result.data as RefreshKeyResponseData;
   AuthToken.set(response.AccessToken);
+  
   if (mSessionKeyStore != null) {
     if (response.SessionSign && response.RotationCounter != undefined) await mSessionKeyStore.WriteRotation( response.SessionSign,response.RotationCounter );
     else await mSessionKeyStore.Clear();
@@ -145,6 +148,7 @@ export const userSessionApi = apiSlice.injectEndpoints({
         const response = result.data as CheckSessionResponseData;
 
         AuthToken.set(response.AccessToken);
+        if (response.AppLocationTokenInfo) LocationTokenContext.AssignFirstAppLocationToken(response.AppLocationTokenInfo);
         if (mSessionKeyStore != null) {
           if (response.SessionSign && response.RotationCounter != undefined) await mSessionKeyStore.WriteRotation( response.SessionSign,response.RotationCounter );
           else await mSessionKeyStore.Clear();

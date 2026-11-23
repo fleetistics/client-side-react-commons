@@ -47,6 +47,7 @@ export type { PasswordSettings } from './models/PasswordSettings';
 export type { PermissionRoleDto } from './models/PermissionRoleDto';
 export type { PreviewMessageTemplateRequestDto } from './models/PreviewMessageTemplateRequestDto';
 export type { ProblemDetails } from './models/ProblemDetails';
+export type { RefreshAppLocationTokenResponseData } from './models/RefreshAppLocationTokenResponseData';
 export type { RefreshKeyRequestData } from './models/RefreshKeyRequestData';
 export type { RefreshKeyResponseData } from './models/RefreshKeyResponseData';
 export type { RegisterUserData } from './models/RegisterUserData';

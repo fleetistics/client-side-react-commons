@@ -7,6 +7,7 @@ import type { CheckSessionResponseData } from '../models/CheckSessionResponseDat
 import type { LoginRequestData } from '../models/LoginRequestData';
 import type { LoginResponseData } from '../models/LoginResponseData';
 import type { LogOutRequestData } from '../models/LogOutRequestData';
+import type { RefreshAppLocationTokenResponseData } from '../models/RefreshAppLocationTokenResponseData';
 import type { RefreshKeyRequestData } from '../models/RefreshKeyRequestData';
 import type { RefreshKeyResponseData } from '../models/RefreshKeyResponseData';
 import type { RegisterUserData } from '../models/RegisterUserData';
@@ -107,6 +108,44 @@ export class AuthService {
             url: '/api/auth/check-session',
             body: requestBody,
             mediaType: 'application/json',
+            errors: {
+                401: `Unauthorized`,
+            },
+        });
+    }
+    /**
+     * @param requestBody
+     * @returns CheckSessionResponseData OK
+     * @throws ApiError
+     */
+    public static postApiAuthCheckAppSession(
+        requestBody: CheckSessionRequestData,
+    ): CancelablePromise<CheckSessionResponseData> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/auth/check-app-session',
+            body: requestBody,
+            mediaType: 'application/json',
+            errors: {
+                401: `Unauthorized`,
+            },
+        });
+    }
+    /**
+     * @param formData
+     * @returns RefreshAppLocationTokenResponseData OK
+     * @throws ApiError
+     */
+    public static postApiAuthRefreshAppLocationToken(
+        formData: {
+            refresh_token?: string;
+        },
+    ): CancelablePromise<RefreshAppLocationTokenResponseData> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/auth/refresh-app-location-token',
+            formData: formData,
+            mediaType: 'application/x-www-form-urlencoded',
             errors: {
                 401: `Unauthorized`,
             },

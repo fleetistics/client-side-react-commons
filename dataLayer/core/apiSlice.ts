@@ -100,6 +100,21 @@ const loggingFetch: typeof fetch = async (input, init) => {
   }
 };
 
+const prepareApiHeaders = (
+  headers: Headers,
+  { endpoint, arg }: { endpoint: string; arg: string | FetchArgs }
+) => {
+  if (AuthToken.get() && !NO_BEARER_URIS.includes(urlOf(arg))) {
+    headers.set('Authorization', `Bearer ${AuthToken.get()}`);
+  }
+  // W3C Trace Context: the server continues this trace, making the browser the
+  // trace root. The id is also logged to the flight recorder for correlation.
+  const { traceparent, traceId } = newTraceContext();
+  headers.set('traceparent', traceparent);
+  recordTrace(endpoint, traceId);
+  return headers;
+};
+
 export const getRawBaseQuery = () => {
   rawBaseQuery ??= fetchBaseQuery({
     baseUrl: APP_CONFIG.BASE_API_URL,
@@ -107,19 +122,36 @@ export const getRawBaseQuery = () => {
     credentials: 'omit',
     timeout: REQUEST_TIMEOUT_MS,
     fetchFn: loggingFetch,
-    prepareHeaders: (headers, { endpoint, arg }) => {
-      if (AuthToken.get() && !NO_BEARER_URIS.includes(urlOf(arg))) {
-        headers.set('Authorization', `Bearer ${AuthToken.get()}`);
-      }
-      // W3C Trace Context: the server continues this trace, making the browser the
-      // trace root. The id is also logged to the flight recorder for correlation.
-      const { traceparent, traceId } = newTraceContext();
-      headers.set('traceparent', traceparent);
-      recordTrace(endpoint, traceId);
-      return headers;
-    },
+    prepareHeaders: prepareApiHeaders,
   });
   return rawBaseQuery;
+};
+
+/**
+ * fetch used by the token-refresh request only. Defaults to the same logging fetch as every other
+ * request; an app whose refresh must complete while backgrounded registers a timer-free one
+ * (React Native's fetch only resolves from a JS timer, which doesn't run in the background).
+ */
+let refreshFetchFn: typeof fetch | undefined;
+export const setRefreshFetchFn = (fn?: typeof fetch) => {
+  refreshFetchFn = fn;
+};
+
+let refreshBaseQuery:
+  | BaseQueryFn<string | FetchArgs, unknown, FetchBaseQueryError, {}, FetchBaseQueryMeta>
+  | undefined;
+
+/** Same configuration as getRawBaseQuery, but its fetch is the one registered with setRefreshFetchFn. */
+export const getRefreshBaseQuery = () => {
+  refreshBaseQuery ??= fetchBaseQuery({
+    baseUrl: APP_CONFIG.BASE_API_URL,
+    credentials: 'omit',
+    timeout: REQUEST_TIMEOUT_MS,
+    // Resolved per call, so a registration after this is built still applies.
+    fetchFn: (input, init) => (refreshFetchFn ?? loggingFetch)(input, init),
+    prepareHeaders: prepareApiHeaders,
+  });
+  return refreshBaseQuery;
 };
 
 const urlOf = (args: string | FetchArgs) => (typeof args === 'string' ? args : args.url);
