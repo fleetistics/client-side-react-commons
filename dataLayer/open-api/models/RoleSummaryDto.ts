@@ -7,7 +7,7 @@ export type RoleSummaryDto = {
     Name?: string;
     Description?: string;
     IsSystem?: boolean;
-    IsReadOnly?: boolean;
+    IsOverridden?: boolean;
     MemberCount?: number;
     TotalMenus?: number;
     ViewCount?: number;

@@ -8,7 +8,7 @@ import type { SetRoleMenuPermissionsDto } from '../models/SetRoleMenuPermissions
 import type { CancelablePromise } from '../core/CancelablePromise';
 import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
-export class RoleMenuPermissionsService {
+export class RolesAdminService {
     /**
      * @returns RoleSummaryDto OK
      * @throws ApiError
@@ -17,9 +17,6 @@ export class RoleMenuPermissionsService {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/admin/roles',
-            errors: {
-                403: `Forbidden`,
-            },
         });
     }
     /**
@@ -37,7 +34,6 @@ export class RoleMenuPermissionsService {
                 'roleId': roleId,
             },
             errors: {
-                403: `Forbidden`,
                 404: `Not Found`,
             },
         });
@@ -62,9 +58,7 @@ export class RoleMenuPermissionsService {
             mediaType: 'application/json',
             errors: {
                 400: `Bad Request`,
-                403: `Forbidden`,
                 404: `Not Found`,
-                409: `Conflict`,
             },
         });
     }

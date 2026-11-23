@@ -6,7 +6,8 @@ import type { RoleMenuItemPermissionDto } from './RoleMenuItemPermissionDto';
 export type RoleMenuPermissionsDto = {
     RoleId?: number;
     RoleName?: string;
-    IsReadOnly?: boolean;
+    IsSystem?: boolean;
+    IsOverridden?: boolean;
     Items?: Array<RoleMenuItemPermissionDto>;
 };
 

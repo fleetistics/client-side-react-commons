@@ -8,10 +8,12 @@ import type { SetRoleMenuPermissionsDto } from '@/client-side.Commons/dataLayer/
 import type { UpdateRoleDto } from '@/client-side.Commons/dataLayer/open-api/models/UpdateRoleDto';
 import { APP_CONFIG } from '@/client-side.Impl/config/app-config';
 
-// api-server's RolesAdminController (/api/admin/roles), Portal Admin only; types generated from its OpenAPI.
-// Errors are ProblemDetails { title, detail }: 404 unknown role, 400 bad input, 409 a rule says no (the Portal Admin role is read-only,
-// system roles cannot be renamed or deleted, a role in use cannot be deleted, a name is taken, nobody changes their own role).
-const base = APP_CONFIG.BASE_API_URL + 'admin/roles';
+// api-server's CompanyRolesController (/api/company/roles): the roles of the caller's company (the system roles and its own), their
+// access rights there (saving a system role's rights stores an override for the company) and who has which role. The Portal Admin
+// screen for the default rights of the system roles is defaultRolesApi.ts. Types are generated from the OpenAPI.
+// Errors are ProblemDetails { title, detail }: 404 unknown role, 400 bad input, 409 a rule says no (system roles cannot be renamed or
+// deleted, a role in use cannot be deleted, a name is taken, nobody changes their own role).
+const base = APP_CONFIG.BASE_API_URL + 'company/roles';
 
 const LIST_TAG = { type: 'Role', id: 'LIST' } as const;
 const USERS_TAG = { type: 'Role', id: 'USERS' } as const;
@@ -19,7 +21,7 @@ const roleTag = (roleId: number) => ({ type: 'Role', id: roleId }) as const;
 
 export const rolesApi = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
-    // The roles the company can use, with member counts and how much of the menu each may use.
+    // The roles the company can use, with member counts and how much of the menu each may use there.
     getRoles: builder.query<RoleSummaryDto[], void>({
       query: () => base,
       providesTags: [LIST_TAG],
@@ -31,10 +33,17 @@ export const rolesApi = apiSlice.injectEndpoints({
       providesTags: (_r, _e, roleId) => [roleTag(roleId)],
     }),
 
-    // Replaces the role's flags (idempotent, so a retry after a 5xx is harmless). 204.
+    // Replaces the role's flags for this company (idempotent, so a retry after a 5xx is harmless). For a system role this is the
+    // company's override of the defaults. 204.
     setRoleMenuPermissions: builder.mutation<void, { roleId: number; body: SetRoleMenuPermissionsDto }>({
       query: ({ roleId, body }) => ({ url: `${base}/${roleId}/menu-permissions`, method: 'PUT', body }),
       invalidatesTags: (_r, _e, { roleId }) => [LIST_TAG, roleTag(roleId)],
+    }),
+
+    // Drops the company's own rights for the role: a system role goes back to the defaults. Nothing to drop is not an error. 204.
+    resetRoleMenuPermissions: builder.mutation<void, number>({
+      query: (roleId) => ({ url: `${base}/${roleId}/menu-permissions`, method: 'DELETE' }),
+      invalidatesTags: (_r, _e, roleId) => [LIST_TAG, roleTag(roleId)],
     }),
 
     // A new role of the caller's company; with CopyFromRoleId it starts with that role's access rights (this is how a role is duplicated). 201.
@@ -72,6 +81,6 @@ export const rolesApi = apiSlice.injectEndpoints({
 });
 
 export const {
-  useGetRolesQuery, useGetRoleMenuPermissionsQuery, useSetRoleMenuPermissionsMutation,
+  useGetRolesQuery, useGetRoleMenuPermissionsQuery, useSetRoleMenuPermissionsMutation, useResetRoleMenuPermissionsMutation,
   useCreateRoleMutation, useUpdateRoleMutation, useDeleteRoleMutation, useGetRoleUsersQuery, useAssignRoleUsersMutation,
 } = rolesApi;
