@@ -3,7 +3,6 @@
 /* tslint:disable */
 /* eslint-disable */
 export type JoinInfoDto = {
-    InvitationId?: number;
     CompanyName?: string;
     InviterName?: string;
     InviteeName?: string;

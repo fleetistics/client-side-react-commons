@@ -2,7 +2,7 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-export type UpdateCompanyJoinCodeDto = {
+export type RegenerateCompanyJoinCodeDto = {
     PermissionRoleId?: number;
     GroupId?: number;
     RequireAdminApproval?: boolean;

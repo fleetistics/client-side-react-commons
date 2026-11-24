@@ -4,5 +4,6 @@
 /* eslint-disable */
 export type JoinCodeRequestDto = {
     Code: string;
+    CompanyLink?: boolean;
 };
 

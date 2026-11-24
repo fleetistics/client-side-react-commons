@@ -10,25 +10,6 @@ import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
 export class JoinService {
     /**
-     * @param invitationId
-     * @returns JoinInfoDto OK
-     * @throws ApiError
-     */
-    public static getApiJoinInvitations(
-        invitationId: number,
-    ): CancelablePromise<JoinInfoDto> {
-        return __request(OpenAPI, {
-            method: 'GET',
-            url: '/api/join/invitations/{invitationId}',
-            path: {
-                'invitationId': invitationId,
-            },
-            errors: {
-                404: `Not Found`,
-            },
-        });
-    }
-    /**
      * @param requestBody
      * @returns JoinInfoDto OK
      * @throws ApiError

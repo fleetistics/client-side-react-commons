@@ -10,6 +10,7 @@ export type JoinInvitationRowDto = {
     PermissionRoleId?: number;
     GroupId?: number;
     RequireAdminApproval?: boolean;
+    TypeId?: number;
     StatusId?: number;
     IsExpired?: boolean;
     /**

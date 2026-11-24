@@ -10,7 +10,7 @@ export type UserJoinInvitationDto = {
     JoinQrCodeImageName?: string;
     PermissionRoleId?: number;
     GroupId?: number;
-    IsPersonal?: boolean;
+    TypeId?: number;
     IsAutoAppRegistrationAllowed?: boolean;
     DoesNotRequireAdminApproval?: boolean;
     UserId?: number;

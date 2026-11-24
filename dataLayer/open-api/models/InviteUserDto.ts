@@ -7,7 +7,6 @@ export type InviteUserDto = {
     Name?: string;
     PermissionRoleId?: number;
     GroupId?: number;
-    ExpiresInDays?: number;
     Message?: string;
     RequireAdminApproval?: boolean;
 };

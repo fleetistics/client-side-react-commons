@@ -7,7 +7,8 @@ import type { InvitationResultDto } from '../models/InvitationResultDto';
 import type { InviteUserDto } from '../models/InviteUserDto';
 import type { JoinInvitationRowDto } from '../models/JoinInvitationRowDto';
 import type { JoinRequestRowDto } from '../models/JoinRequestRowDto';
-import type { UpdateCompanyJoinCodeDto } from '../models/UpdateCompanyJoinCodeDto';
+import type { RegenerateCompanyJoinCodeDto } from '../models/RegenerateCompanyJoinCodeDto';
+import type { SetCompanyJoinCodeEnabledDto } from '../models/SetCompanyJoinCodeEnabledDto';
 import type { CancelablePromise } from '../core/CancelablePromise';
 import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
@@ -41,6 +42,27 @@ export class CompanyJoinService {
             errors: {
                 400: `Bad Request`,
                 403: `Forbidden`,
+                409: `Conflict`,
+            },
+        });
+    }
+    /**
+     * @param invitationId
+     * @returns InvitationResultDto OK
+     * @throws ApiError
+     */
+    public static postApiCompanyJoinInvitationsResend(
+        invitationId: number,
+    ): CancelablePromise<InvitationResultDto> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/company/join/invitations/{invitationId}/resend',
+            path: {
+                'invitationId': invitationId,
+            },
+            errors: {
+                403: `Forbidden`,
+                404: `Not Found`,
                 409: `Conflict`,
             },
         });
@@ -91,9 +113,9 @@ export class CompanyJoinService {
      * @returns CompanyJoinCodeDto OK
      * @throws ApiError
      */
-    public static postApiCompanyJoinCompanyCode(): CancelablePromise<CompanyJoinCodeDto> {
+    public static getApiCompanyJoinCompanyCode(): CancelablePromise<CompanyJoinCodeDto> {
         return __request(OpenAPI, {
-            method: 'POST',
+            method: 'GET',
             url: '/api/company/join/company-code',
             errors: {
                 403: `Forbidden`,
@@ -101,28 +123,39 @@ export class CompanyJoinService {
         });
     }
     /**
-     * @param invitationId
      * @param requestBody
-     * @returns void
+     * @returns CompanyJoinCodeDto OK
      * @throws ApiError
      */
-    public static putApiCompanyJoinCompanyCode(
-        invitationId: number,
-        requestBody: UpdateCompanyJoinCodeDto,
-    ): CancelablePromise<void> {
+    public static postApiCompanyJoinCompanyCodeRegenerate(
+        requestBody: RegenerateCompanyJoinCodeDto,
+    ): CancelablePromise<CompanyJoinCodeDto> {
         return __request(OpenAPI, {
-            method: 'PUT',
-            url: '/api/company/join/company-code/{invitationId}',
-            path: {
-                'invitationId': invitationId,
-            },
+            method: 'POST',
+            url: '/api/company/join/company-code/regenerate',
             body: requestBody,
             mediaType: 'application/json',
             errors: {
                 400: `Bad Request`,
                 403: `Forbidden`,
-                404: `Not Found`,
-                409: `Conflict`,
+            },
+        });
+    }
+    /**
+     * @param requestBody
+     * @returns CompanyJoinCodeDto OK
+     * @throws ApiError
+     */
+    public static putApiCompanyJoinCompanyCodeEnabled(
+        requestBody: SetCompanyJoinCodeEnabledDto,
+    ): CancelablePromise<CompanyJoinCodeDto> {
+        return __request(OpenAPI, {
+            method: 'PUT',
+            url: '/api/company/join/company-code/enabled',
+            body: requestBody,
+            mediaType: 'application/json',
+            errors: {
+                403: `Forbidden`,
             },
         });
     }

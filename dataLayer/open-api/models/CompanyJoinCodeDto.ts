@@ -5,12 +5,10 @@
 export type CompanyJoinCodeDto = {
     Id?: number;
     JoinCode?: string;
-    /**
-     * Unix timestamp (seconds since epoch, UTC)
-     */
-    ExpirationDate?: number;
+    Enabled?: boolean;
     PermissionRoleId?: number;
     GroupId?: number;
     RequireAdminApproval?: boolean;
+    OpenInvitations?: number;
 };
 
