@@ -11,7 +11,7 @@ import {
 import { clearOutbox } from '@/client-side.Commons/dataLayer/outbox/outbox';
 import { ClientSideInfoProvider } from './ClientSideInfoProvider';
 
-import { USER_ACCOUNT_CONSTS, USER_SESSION_CONSTS } from '@/client-side.Impl/config/userSession-consts';
+import { USER_SESSION_CONSTS } from '@/client-side.Impl/config/userSession-consts';
 import type { CheckSessionRequestData, CheckSessionResponseData, LoginRequestData, LoginResponseData, RefreshKeyRequestData, RefreshKeyResponseData, UserSessionInfoDto } from '../dataLayer/open-api';
 import type { Concrete } from '@/client-side.Commons/dataLayer/core/apiTypes';
 import { UserSessionContext } from './userSessionContext';
