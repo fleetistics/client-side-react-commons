@@ -1,10 +1,10 @@
 import type {
+  ClientSideInfo,
   RegisterUserData,
   RequestPasswordResetData,
   ResetPasswordData,
 } from '@/client-side.Commons/dataLayer/open-api';
 import type { Concrete } from '@/client-side.Commons/dataLayer/core/apiTypes';
-import type { ClientSideInfo } from '@/client-side.Commons/userSession/userSessionDto';
 
 // Request bodies of the anonymous account endpoints (AuthController: register,
 // request-password-reset, reset-password), derived from the generated OpenAPI models. The schema

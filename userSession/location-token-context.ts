@@ -1,4 +1,4 @@
-import { RefreshAppLocationTokenResponseData } from "../dataLayer/open-api";
+import type { RefreshAppLocationTokenResponseData } from "../dataLayer/open-api";
 
 export class LocationTokenContext {
     public static AssignFirstAppLocationToken(appLocationToken: RefreshAppLocationTokenResponseData) {
