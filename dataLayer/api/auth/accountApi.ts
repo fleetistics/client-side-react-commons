@@ -16,10 +16,9 @@ export const accountApi = apiSlice.injectEndpoints({
     // Callers pass only the form values; the client info is gathered here at request time.
     registerUser: builder.mutation<void, Omit<RegisterUser, 'ClientSideInfo'>>({
       queryFn: async (user, _api, _extraOptions, baseQuery) => {
-        const provider = ClientSideInfoProvider.GetInstance();
-        await provider.CollectInfo();
-        const clientInfo = provider.Info;
-        const body: RegisterUser = { ...user, ClientSideInfo: clientInfo };
+        // Same as login (userSessionApi.ts): the info is the static snapshot of the registered provider.
+        await ClientSideInfoProvider.CheckInfoCollected();
+        const body: RegisterUser = { ...user, ClientSideInfo: ClientSideInfoProvider.Info };
         const result = await baseQuery({ url: USER_ACCOUNT_CONSTS.REGISTER_URL, method: 'POST', body });
         return result as QueryReturnValue<void, FetchBaseQueryError, FetchBaseQueryMeta>;
       },
