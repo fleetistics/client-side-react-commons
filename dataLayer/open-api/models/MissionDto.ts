@@ -2,10 +2,11 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-export type TeamHeaderDto = {
+export type MissionDto = {
     Id?: number;
     CreatorUserId?: number;
-    TeamName?: string;
+    CompanyId?: number;
+    Name?: string;
     StatusId?: number;
     /**
      * Unix timestamp (seconds since epoch, UTC)

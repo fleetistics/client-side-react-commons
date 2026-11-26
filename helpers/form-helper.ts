@@ -1,6 +1,7 @@
 import type { FieldValues, UseFormSetError } from "react-hook-form";
 import { getErrorMessage } from "../dataLayer/core/apiError";
-import type { EditorUploadedMedia, ServerInboundUploadedMedia } from "../dataLayer/model/uploaded-media";
+import type { EditorUploadedMedia } from "../dataLayer/model/uploaded-media";
+import type { InboundUploadedMediaDto } from "../dataLayer/open-api";
 
 // Shows a failed submit as one form-level message (read it with <FormError>); react-hook-form clears it on the next submit.
 // The server's own message wins; the title is the fallback when the error carries none.
@@ -43,7 +44,7 @@ export function BuildFormPatchValue<TPatch extends Record<string, unknown>>(
                 if (!patchRecord['InsertMedias']) {
                     patchRecord['InsertMedias'] = [];
                 }
-                (patchRecord['InsertMedias'] as ServerInboundUploadedMedia[]).push({
+                (patchRecord['InsertMedias'] as InboundUploadedMediaDto[]).push({
                     Guid: media.Guid,
                     Url: media.Url,
                     MediaType: media.MediaType,
