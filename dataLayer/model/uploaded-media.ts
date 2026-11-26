@@ -1,4 +1,4 @@
-import { InboundUploadedMediaDto, UploadedMediaDto } from "../open-api"
+import type { InboundUploadedMediaDto, UploadedMediaDto } from "../open-api"
 
 // export type ServerInboundUploadedMedia = {
 //     GroupKey?: number,
