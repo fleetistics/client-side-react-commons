@@ -9,6 +9,7 @@ export type ContactLookupsDto = {
     ContactTypes?: Array<LookupItemDto>;
     LeadSources?: Array<LookupItemDto>;
     PaymentTerms?: Array<LookupItemDto>;
+    CompanyStatuses?: Array<LookupItemDto>;
     AccountManagers?: Array<UserLookupDto>;
 };
 
