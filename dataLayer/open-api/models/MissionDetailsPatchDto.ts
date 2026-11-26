@@ -3,7 +3,7 @@
 /* tslint:disable */
 /* eslint-disable */
 import type { InboundUploadedMediaDto } from './InboundUploadedMediaDto';
-export type TeamDetailsPatchDto = {
+export type MissionDetailsPatchDto = {
     IncidentName?: string | null;
     Notes?: string | null;
     InsertMedias?: Array<InboundUploadedMediaDto>;

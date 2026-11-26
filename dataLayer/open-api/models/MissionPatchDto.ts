@@ -2,7 +2,7 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-export type TeamPatchDto = {
-    TeamName?: string;
+export type MissionPatchDto = {
+    Name?: string;
 };
 

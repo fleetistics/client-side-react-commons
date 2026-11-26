@@ -5,7 +5,7 @@
 export type UserEmergencyAlertDto = {
     Id?: number;
     UserId?: number;
-    MobileGpsDeviceId?: number;
+    GpsDeviceId?: number;
     /**
      * Unix timestamp (seconds since epoch, UTC)
      */
@@ -16,8 +16,6 @@ export type UserEmergencyAlertDto = {
     CompletedDate?: number;
     Latitude?: number;
     Longitude?: number;
-    CompleteLatitude?: number;
-    CompleteLongitude?: number;
     StatusId?: number;
     /**
      * Unix timestamp (seconds since epoch, UTC)

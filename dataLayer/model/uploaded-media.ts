@@ -1,17 +1,19 @@
-export type ServerInboundUploadedMedia = {
-    GroupKey?: number,
-    MediaType: number,
-    Url: string,
-    Guid: string
-}
-export type UploadedMedia = {
-    Id?: number,
-    GroupKey?: number,
-    MediaType: number,
-    Url: string,
-    PreviewUrl: string
-}
-export type EditorUploadedMedia = UploadedMedia & {
+import { InboundUploadedMediaDto, UploadedMediaDto } from "../open-api"
+
+// export type ServerInboundUploadedMedia = {
+//     GroupKey?: number,
+//     MediaType: number,
+//     Url: string,
+//     Guid: string
+// }
+// export type UploadedMedia = {
+//     Id?: number,
+//     GroupKey?: number,
+//     MediaType: number,
+//     Url: string,
+//     PreviewUrl: string
+// }
+export type EditorUploadedMedia = UploadedMediaDto & {
     // **********************
     Guid: string // added in client side for just selected media
     FileObject?: any // the File picked from local disk, kept until it is uploaded; absent for media already on the server
@@ -20,5 +22,5 @@ export type EditorUploadedMedia = UploadedMedia & {
 }
 export type EditorUploadedMediasPack = {
     RemoveMediaIds?: number[],
-    InsertMedias: ServerInboundUploadedMedia[]
+    InsertMedias: InboundUploadedMediaDto[]
 }

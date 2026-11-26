@@ -9,6 +9,7 @@ export type UserDto = {
     DisplayName?: string;
     UserName?: string;
     FullName?: string;
+    IconKeyOnMap?: number;
     Phone?: string;
     Email?: string;
     IsMfaEnabled?: boolean;

@@ -8,6 +8,7 @@ export type UserPatchDto = {
     FullName?: string | null;
     Phone?: string | null;
     Email?: string | null;
+    IconKeyOnMap?: number | null;
     IsMfaEnabled?: boolean;
     InsertMedias?: Array<InboundUploadedMediaDto>;
     RemoveMediaIds?: Array<number>;
