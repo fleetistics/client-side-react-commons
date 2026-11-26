@@ -1,11 +1,10 @@
 import { apiSlice } from '@/client-side.Commons/dataLayer/core/apiSlice';
 import { APP_URLS } from '@/client-side.Impl/config/app-urls';
-import type { TeamCreateDto, TeamCreatePatchDto } from '@/client-side.Commons/dataLayer/open-api';
+import type { TeamCreateDto } from '@/client-side.Commons/dataLayer/open-api';
 
-// Mirrors api-server's TeamController. A team is set up in three steps: create (Creating status),
-// patch while the user fills in the rest, start (Active). create/patch return the whole
-// creating-team view, and every call below keeps getCreatingTeam's cache in step with it, so the
-// create-team screen needs no extra refetch.
+// Mirrors api-server's TeamController, which now only answers GET /api/team/active and GET /api/team/creating.
+// Creating, patching and starting a team moved to the mission endpoints (missionApi.ts), so the old create/patch/start
+// mutations of this file are gone.
 export const teamApi = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     // GET /api/team/active - 204 (no body) when the user has no active team, normalized to undefined.
@@ -45,62 +44,6 @@ export const teamApi = apiSlice.injectEndpoints({
         return { data: (result.data as TeamCreateDto | null | undefined) ?? null };
       },
     }),
-
-    // POST /api/team - creates the team, applies the creator's user patch and registers them as its
-    // first member, all from this single body. TeamName is required. The server answers with the new
-    // team's id, which is what `createTeam(...).unwrap()` resolves to. getCreatingTeam's cache is
-    // refreshed before resolving, so callers can rely on it right after the await. Invalidates every
-    // cached User - the same call may have changed the caller's name/phone.
-    createTeam: builder.mutation<number, TeamCreatePatchDto>({
-      queryFn: async (body, { dispatch }, _extraOptions, baseQuery) => {
-        const created = await baseQuery({ url: APP_URLS.BASE_TEAM_URL, method: 'POST', body });
-        if (created.error) return { error: created.error };
-        const teamId = created.data as number;
-
-        const creating = await baseQuery(APP_URLS.BASE_TEAM_URL + '/creating');
-        if (!creating.error) {
-          dispatch(teamApi.util.upsertQueryData('getCreatingTeam', undefined, (creating.data as TeamCreateDto | null | undefined) ?? null));
-        }
-        return { data: teamId };
-      },
-      invalidatesTags: ['User'],
-    }),
-
-    // PATCH /api/team/{teamId} - only the fields present in the body change.
-    patchCreatingTeam: builder.mutation<TeamCreateDto, { teamId: number; patch: TeamCreatePatchDto }>({
-      query: ({ teamId, patch }) => ({
-        url: APP_URLS.BASE_TEAM_URL + `/${teamId}`,
-        method: 'PATCH',
-        body: patch,
-      }),
-      invalidatesTags: ['User'],
-      onQueryStarted: async (_arg, { dispatch, queryFulfilled }) => {
-        try {
-          const { data } = await queryFulfilled;
-          dispatch(teamApi.util.upsertQueryData('getCreatingTeam', undefined, data));
-        } catch {
-          // The request failed - nothing to seed.
-        }
-      },
-    }),
-
-    // POST /api/team/{teamId}/start - activates the team (204). Only its creator can start it.
-    // The team is no longer in Creating status afterwards, and the user's active team changed.
-    startTeam: builder.mutation<void, number>({
-      query: (teamId) => ({
-        url: APP_URLS.BASE_TEAM_URL + `/${teamId}/start`,
-        method: 'POST',
-      }),
-      invalidatesTags: ['User'],
-      onQueryStarted: async (_teamId, { dispatch, queryFulfilled }) => {
-        try {
-          await queryFulfilled;
-          dispatch(teamApi.util.upsertQueryData('getCreatingTeam', undefined, null));
-        } catch {
-          // The request failed - the team is still being created.
-        }
-      },
-    }),
   }),
 });
 
@@ -109,9 +52,6 @@ export const {
   useLoadActiveTeamIdMutation,
   useGetCreatingTeamQuery,
   useLazyGetCreatingTeamQuery,
-  useCreateTeamMutation,
-  usePatchCreatingTeamMutation,
-  useStartTeamMutation,
 } = teamApi;
 
 /** Alias for the RTK-generated `useGetActiveTeamIdQuery`. */
@@ -122,12 +62,3 @@ export const useLoadActiveTeamId = useLoadActiveTeamIdMutation;
 
 /** Alias for the RTK-generated `useGetCreatingTeamQuery`. */
 export const useGetCreatingTeam = useGetCreatingTeamQuery;
-
-/** Alias for the RTK-generated `useCreateTeamMutation`. */
-export const useCreateTeam = useCreateTeamMutation;
-
-/** Alias for the RTK-generated `usePatchCreatingTeamMutation`. */
-export const usePatchCreatingTeam = usePatchCreatingTeamMutation;
-
-/** Alias for the RTK-generated `useStartTeamMutation`. */
-export const useStartTeam = useStartTeamMutation;

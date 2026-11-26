@@ -1,6 +1,6 @@
 import { apiSlice } from '@/client-side.Commons/dataLayer/core/apiSlice';
 import type { MissionCreatePatchDto } from '@/client-side.Commons/dataLayer/open-api/models/MissionCreatePatchDto';
-import type { MissionCreateResult } from '@/client-side.Commons/dataLayer/open-api/models/MissionCreateResult';
+import type { CreatingMissionDto } from '@/client-side.Commons/dataLayer/open-api/models/CreatingMissionDto';
 import type { MissionPrimaryTargetUserAssignDto } from '@/client-side.Commons/dataLayer/open-api/models/MissionPrimaryTargetUserAssignDto';
 import type { MissionPrimaryTargetUserDto } from '@/client-side.Commons/dataLayer/open-api/models/MissionPrimaryTargetUserDto';
 import { APP_CONFIG } from '@/client-side.Impl/config/app-config';
@@ -8,6 +8,12 @@ import { APP_CONFIG } from '@/client-side.Impl/config/app-config';
 // Mirrors api-server's MissionController (/api/mission). Types are generated from the OpenAPI.
 // The mission being set up ("creating") is cached under getCreatingMission; the mutations keep that cache in sync.
 const mission = APP_CONFIG.BASE_API_URL + 'mission';
+
+/**
+ * The mission being set up: the server's CreatingMissionDto, plus the primary target user this client puts into the cached copy
+ * after assigning one (the server's creating view does not carry it yet, so a refetch leaves it out).
+ */
+export type MissionCreateResult = CreatingMissionDto & { PrimaryTargetUser?: MissionPrimaryTargetUserDto };
 
 export const missionApi = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
