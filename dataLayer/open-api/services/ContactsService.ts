@@ -5,10 +5,13 @@
 import type { ContactCompanyDto } from '../models/ContactCompanyDto';
 import type { ContactCompanyRowDto } from '../models/ContactCompanyRowDto';
 import type { ContactLookupsDto } from '../models/ContactLookupsDto';
+import type { ContactMessageResultDto } from '../models/ContactMessageResultDto';
 import type { ContactPersonDto } from '../models/ContactPersonDto';
 import type { ContactPersonRowDto } from '../models/ContactPersonRowDto';
+import type { PatchContactPersonDto } from '../models/PatchContactPersonDto';
 import type { SaveContactCompanyDto } from '../models/SaveContactCompanyDto';
 import type { SaveContactPersonDto } from '../models/SaveContactPersonDto';
+import type { SendContactMessageDto } from '../models/SendContactMessageDto';
 import type { CancelablePromise } from '../core/CancelablePromise';
 import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
@@ -168,6 +171,56 @@ export class ContactsService {
         return __request(OpenAPI, {
             method: 'PUT',
             url: '/api/contacts/people/{personId}',
+            path: {
+                'personId': personId,
+            },
+            body: requestBody,
+            mediaType: 'application/json',
+            errors: {
+                400: `Bad Request`,
+                403: `Forbidden`,
+                404: `Not Found`,
+            },
+        });
+    }
+    /**
+     * @param personId
+     * @param requestBody
+     * @returns ContactPersonDto OK
+     * @throws ApiError
+     */
+    public static patchApiContactsPeople(
+        personId: number,
+        requestBody: PatchContactPersonDto,
+    ): CancelablePromise<ContactPersonDto> {
+        return __request(OpenAPI, {
+            method: 'PATCH',
+            url: '/api/contacts/people/{personId}',
+            path: {
+                'personId': personId,
+            },
+            body: requestBody,
+            mediaType: 'application/json',
+            errors: {
+                400: `Bad Request`,
+                403: `Forbidden`,
+                404: `Not Found`,
+            },
+        });
+    }
+    /**
+     * @param personId
+     * @param requestBody
+     * @returns ContactMessageResultDto OK
+     * @throws ApiError
+     */
+    public static postApiContactsPeopleMessage(
+        personId: number,
+        requestBody: SendContactMessageDto,
+    ): CancelablePromise<ContactMessageResultDto> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/contacts/people/{personId}/message',
             path: {
                 'personId': personId,
             },

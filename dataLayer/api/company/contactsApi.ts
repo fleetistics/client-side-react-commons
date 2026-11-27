@@ -2,8 +2,11 @@ import { apiSlice } from '@/client-side.Commons/dataLayer/core/apiSlice';
 import type { ContactCompanyDto } from '@/client-side.Commons/dataLayer/open-api/models/ContactCompanyDto';
 import type { ContactCompanyRowDto } from '@/client-side.Commons/dataLayer/open-api/models/ContactCompanyRowDto';
 import type { ContactLookupsDto } from '@/client-side.Commons/dataLayer/open-api/models/ContactLookupsDto';
+import type { ContactMessageResultDto } from '@/client-side.Commons/dataLayer/open-api/models/ContactMessageResultDto';
+import type { SendContactMessageDto } from '@/client-side.Commons/dataLayer/open-api/models/SendContactMessageDto';
 import type { ContactPersonDto } from '@/client-side.Commons/dataLayer/open-api/models/ContactPersonDto';
 import type { ContactPersonRowDto } from '@/client-side.Commons/dataLayer/open-api/models/ContactPersonRowDto';
+import type { PatchContactPersonDto } from '@/client-side.Commons/dataLayer/open-api/models/PatchContactPersonDto';
 import type { SaveContactCompanyDto } from '@/client-side.Commons/dataLayer/open-api/models/SaveContactCompanyDto';
 import type { SaveContactPersonDto } from '@/client-side.Commons/dataLayer/open-api/models/SaveContactPersonDto';
 import { APP_CONFIG } from '@/client-side.Impl/config/app-config';
@@ -73,6 +76,18 @@ export const contactsApi = apiSlice.injectEndpoints({
       invalidatesTags: [ALL_TAG],
     }),
 
+    // Changes only the fields that are sent: the contact type, active flag and whether the person is the company's primary contact. 404 for a colleague.
+    patchContactPerson: builder.mutation<ContactPersonDto, { id: number; body: PatchContactPersonDto }>({
+      query: ({ id, body }) => ({ url: `${contacts}/people/${id}`, method: 'PATCH', body }),
+      invalidatesTags: [ALL_TAG],
+    }),
+
+    // Emails the person (replies go to the caller) and logs an Email activity: the activity lists refetch too.
+    sendContactMessage: builder.mutation<ContactMessageResultDto, { id: number; body: SendContactMessageDto }>({
+      query: ({ id, body }) => ({ url: `${contacts}/people/${id}/message`, method: 'POST', body }),
+      invalidatesTags: [{ type: 'Activities', id: 'ALL' }],
+    }),
+
     archiveContactPerson: builder.mutation<ContactPersonDto, number>({
       query: (id) => ({ url: `${contacts}/people/${id}/archive`, method: 'POST' }),
       invalidatesTags: [ALL_TAG],
@@ -95,6 +110,8 @@ export const {
   useGetContactPersonQuery,
   useCreateContactPersonMutation,
   useUpdateContactPersonMutation,
+  usePatchContactPersonMutation,
+  useSendContactMessageMutation,
   useArchiveContactPersonMutation,
   useUnarchiveContactPersonMutation,
 } = contactsApi;
