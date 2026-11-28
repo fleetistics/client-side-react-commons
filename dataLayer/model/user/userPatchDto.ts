@@ -8,7 +8,7 @@ import type { UserPatchDto } from '@/client-side.Commons/dataLayer/open-api';
 // narrowed InboundUploadedMediaDto (see uploadedMediaDto.ts) instead.
 export type UserPatch = Pick<
   UserPatchDto,
-  'DisplayName' | 'FullName' | 'Phone' | 'Email' | 'RemoveMediaIds' | 'InsertMedias'
+  'DisplayName' | 'FirstName' | 'LastName' | 'Phone' | 'Email' | 'RemoveMediaIds' | 'InsertMedias'
 > & {
   // Not in the generated UserPatchDto until open-api is regenerated from a server that has it.
   IsMfaEnabled?: boolean;

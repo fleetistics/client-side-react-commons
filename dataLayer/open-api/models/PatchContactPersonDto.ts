@@ -4,7 +4,9 @@
 /* eslint-disable */
 export type PatchContactPersonDto = {
     ContactTypeId?: number;
-    IsActive?: boolean;
+    EmployeeStatusId?: number;
     IsPrimary?: boolean;
+    Title?: string;
+    Mobile?: string;
 };
 

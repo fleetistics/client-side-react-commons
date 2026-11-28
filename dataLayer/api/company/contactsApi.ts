@@ -53,7 +53,7 @@ export const contactsApi = apiSlice.injectEndpoints({
       invalidatesTags: [ALL_TAG],
     }),
 
-    // Colleagues (members of the caller's company) and the contact people they can see, archived ones included (IsArchived).
+    // Colleagues (members of the caller's company) and the contact people they can see, archived ones included (StatusId 14).
     getContactPeople: builder.query<ContactPersonRowDto[], void>({
       query: () => `${contacts}/people`,
       providesTags: [ALL_TAG],
@@ -93,8 +93,14 @@ export const contactsApi = apiSlice.injectEndpoints({
       invalidatesTags: [ALL_TAG],
     }),
 
-    unarchiveContactPerson: builder.mutation<ContactPersonDto, number>({
-      query: (id) => ({ url: `${contacts}/people/${id}/unarchive`, method: 'POST' }),
+    // Suspend (reversible) and resume; archive is final. A colleague's membership of the caller's company changes, a contact's user status.
+    suspendContactPerson: builder.mutation<ContactPersonDto, number>({
+      query: (id) => ({ url: `${contacts}/people/${id}/suspend`, method: 'POST' }),
+      invalidatesTags: [ALL_TAG],
+    }),
+
+    resumeContactPerson: builder.mutation<ContactPersonDto, number>({
+      query: (id) => ({ url: `${contacts}/people/${id}/resume`, method: 'POST' }),
       invalidatesTags: [ALL_TAG],
     }),
   }),
@@ -113,5 +119,6 @@ export const {
   usePatchContactPersonMutation,
   useSendContactMessageMutation,
   useArchiveContactPersonMutation,
-  useUnarchiveContactPersonMutation,
+  useSuspendContactPersonMutation,
+  useResumeContactPersonMutation,
 } = contactsApi;

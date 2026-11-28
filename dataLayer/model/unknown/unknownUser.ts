@@ -5,7 +5,7 @@ export const UnknownUser: Readonly<UserDto> = Object.freeze({
   Id: 0,
   DisplayName: 'Unknown user',
   UserName: 'Unknown',
-  FullName: 'Unknown user',
+  FirstName: 'Unknown user',
   Phone: '',
   Email: '',
 });

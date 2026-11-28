@@ -5,7 +5,8 @@
 import type { InboundUploadedMediaDto } from './InboundUploadedMediaDto';
 export type UserPatchDto = {
     DisplayName?: string;
-    FullName?: string | null;
+    FirstName?: string;
+    LastName?: string | null;
     Phone?: string | null;
     Email?: string | null;
     IconKeyOnMap?: number | null;

@@ -7,7 +7,8 @@ export type RegisterUserData = {
     UserName?: string;
     Email?: string;
     DisplayName?: string;
-    FullName?: string;
+    FirstName?: string;
+    LastName?: string;
     Phone?: string;
     ClientSideInfo?: ClientSideInfo;
 };

@@ -12,7 +12,7 @@ import type { Concrete } from '@/client-side.Commons/dataLayer/core/apiTypes';
 
 /** Self-registration. UserName is only used (and required) when the server's Auth:EmailMode is UniqueUserName. */
 export type RegisterUser = Concrete<RegisterUserData, 'Email' | 'DisplayName'> &
-  Pick<RegisterUserData, 'UserName' | 'FullName' | 'Phone'> & {
+  Pick<RegisterUserData, 'UserName' | 'FirstName' | 'LastName' | 'Phone'> & {
     ClientSideInfo: ClientSideInfo;
   };
 

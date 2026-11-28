@@ -238,16 +238,17 @@ export class ContactsService {
      * @returns ContactPersonDto OK
      * @throws ApiError
      */
-    public static postApiContactsPeopleArchive(
+    public static postApiContactsPeopleSuspend(
         personId: number,
     ): CancelablePromise<ContactPersonDto> {
         return __request(OpenAPI, {
             method: 'POST',
-            url: '/api/contacts/people/{personId}/archive',
+            url: '/api/contacts/people/{personId}/suspend',
             path: {
                 'personId': personId,
             },
             errors: {
+                400: `Bad Request`,
                 403: `Forbidden`,
                 404: `Not Found`,
             },
@@ -258,16 +259,38 @@ export class ContactsService {
      * @returns ContactPersonDto OK
      * @throws ApiError
      */
-    public static postApiContactsPeopleUnarchive(
+    public static postApiContactsPeopleResume(
         personId: number,
     ): CancelablePromise<ContactPersonDto> {
         return __request(OpenAPI, {
             method: 'POST',
-            url: '/api/contacts/people/{personId}/unarchive',
+            url: '/api/contacts/people/{personId}/resume',
             path: {
                 'personId': personId,
             },
             errors: {
+                400: `Bad Request`,
+                403: `Forbidden`,
+                404: `Not Found`,
+            },
+        });
+    }
+    /**
+     * @param personId
+     * @returns ContactPersonDto OK
+     * @throws ApiError
+     */
+    public static postApiContactsPeopleArchive(
+        personId: number,
+    ): CancelablePromise<ContactPersonDto> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/contacts/people/{personId}/archive',
+            path: {
+                'personId': personId,
+            },
+            errors: {
+                400: `Bad Request`,
                 403: `Forbidden`,
                 404: `Not Found`,
             },

@@ -33,7 +33,8 @@ export const userApi = apiSlice.injectEndpoints({
             const user = draft.Users?.find((x) => x.Id === userId);
             if (!user) return;
             if (patch.DisplayName !== undefined) user.DisplayName = patch.DisplayName;
-            if (patch.FullName !== undefined) user.FullName = patch.FullName ?? undefined;
+            if (patch.FirstName !== undefined) user.FirstName = patch.FirstName;
+            if (patch.LastName !== undefined) user.LastName = patch.LastName ?? undefined;
             if (patch.Phone !== undefined) user.Phone = patch.Phone ?? undefined;
             if (patch.Email !== undefined) user.Email = patch.Email ?? undefined;
             if (patch.IsMfaEnabled !== undefined) user.IsMfaEnabled = patch.IsMfaEnabled;

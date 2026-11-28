@@ -8,7 +8,9 @@ export type UserDto = {
     CompanyId?: number;
     DisplayName?: string;
     UserName?: string;
-    FullName?: string;
+    FirstName?: string;
+    LastName?: string;
+    KindId?: number;
     IconKeyOnMap?: number;
     Phone?: string;
     Email?: string;

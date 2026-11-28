@@ -13,9 +13,10 @@ export type ContactPersonDto = {
     Phone?: string;
     Mobile?: string;
     ContactTypeId?: number;
+    EmployeeStatusId?: number;
     LeadSourceId?: number;
-    IsActive?: boolean;
-    IsArchived?: boolean;
+    StatusId?: number;
+    KindId?: number;
     IsPrivate?: boolean;
     IsPrimary?: boolean;
     CompanyId?: number;

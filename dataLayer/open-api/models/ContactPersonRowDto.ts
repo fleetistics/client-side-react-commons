@@ -7,14 +7,15 @@ export type ContactPersonRowDto = {
     Name?: string;
     IsEmployee?: boolean;
     ContactTypeId?: number;
+    EmployeeStatusId?: number;
     CompanyId?: number;
     CompanyName?: string;
     Title?: string;
     Email?: string;
     Phone?: string;
     IsPrimary?: boolean;
-    IsActive?: boolean;
-    IsArchived?: boolean;
+    StatusId?: number;
+    KindId?: number;
     IsPrivate?: boolean;
 };
 

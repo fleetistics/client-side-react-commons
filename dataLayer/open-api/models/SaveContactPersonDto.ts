@@ -11,8 +11,8 @@ export type SaveContactPersonDto = {
     Phone?: string;
     Mobile?: string;
     ContactTypeId?: number;
+    EmployeeStatusId?: number;
     LeadSourceId?: number;
-    IsActive?: boolean;
     CompanyId?: number;
     IsPrivate?: boolean;
     IsPrimary?: boolean;
